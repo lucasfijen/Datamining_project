@@ -24,7 +24,7 @@ df['day'] = df['subtractedtime'].dt.weekday
 mooddf = df[df.variable == 'mood']
 # Create a df with the mean values of a mood per day
 meanmooddf = mooddf.groupby(['id', 'date']).mean().reset_index()
-meanmooddf
+# meanmooddf
 
 
 #%%
@@ -58,7 +58,6 @@ for i in mooddf.id.unique():
 
 #%%
 mooddf.boxplot(grid=False, rot=90, column=['value'], by='id')
-
 plt.show()
 
 #%%
@@ -70,21 +69,20 @@ print(mooddf[mooddf.id == 'AS14.31'].value.value_counts())
 # Get sum values per id, date and unique variable value
 # Then converts them into columns
 sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
-#%%
-# Calculate mean values per id per date per unique variable
 
+# Calculate mean values per id per date per unique variable
 meandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
 meandf.columns = 'mean' + meandf.columns
-#%%
+
 # Calculate std values per id per date per unique variable
 stddf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].std().unstack()
 stddf.columns = 'std' + stddf.columns
-#%%
-# Calculate std values per id per date per unique variable
+
+# Calculate median values per id per date per unique variable
 mediandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].median().unstack()
 mediandf.columns = 'median' + mediandf.columns
 
-#%%
+# Concatenates these dfs into one
 finaldf = pd.concat([meandf, stddf, mediandf, sumdf], axis=1, sort=False)
 finaldf
 
