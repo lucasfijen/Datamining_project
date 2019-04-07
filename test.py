@@ -2,6 +2,7 @@
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
+import numpy as np
 # Loading the database from a folder 1 hierarchy higher
 df = pd.read_csv('../dataset_mood_smartphone.csv', index_col=0)
 df['time'] = pd.to_datetime(df['time'])
@@ -87,4 +88,37 @@ finaldf = pd.concat([meandf, stddf, mediandf, sumdf], axis=1, sort=False)
 finaldf
 
 
+#%%
+filtereddf = finaldf.dropna(subset=['meanmood']).fillna(0)
+
+
+#%%
+filtereddf
+
+#%%
+# Splitting the data in the target values y and the predictors X
+# Excluded some categories that are not known beforehand
+y = filtereddf.meanmood.values
+X = filtereddf.loc[:, ~filtereddf.columns.isin(['meanmood', 'stdmood', 'medianmood'])].values
+y = y.reshape((len(y), 1))
+#%%
+# Adding a bias to X
+X = np.hstack((np.ones(y.shape), X))
+
+#%%
+from numpy.linalg import lstsq
+
+# Performing linear regression
+betas = lstsq(X, y, rcond=None)[0]
+
+#Calculating predicted ys and their MSE and r
+y_hat = X.dot(betas)
+mse = np.mean((y - y_hat)**2)
+N = y.size
+P = X.shape[1]
+r = 1 - (np.sum((y - y_hat) ** 2) / np.sum((y - np.mean(y)) ** 2))
+print(mse)
+print(betas)
+print(filtereddf.columns)
+print(r)
 #%%
