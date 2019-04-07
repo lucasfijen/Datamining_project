@@ -13,6 +13,7 @@ def split_to_days(x, splitvalue):
     else:
         return (x - datetime.timedelta(days = 1))
 
+df['variable'] = df.variable.str.replace(" ","")
 
 # Splitting the days on a specific hour, in this case 03:00
 hourdaystarts = 3
@@ -64,4 +65,28 @@ plt.show()
 # This one seems a bit odd, 144 time 7, but every now and then
 # a 6 or 8, however boxplot shows clearly only the 7s
 print(mooddf[mooddf.id == 'AS14.31'].value.value_counts())
+
+#%%
+# Get sum values per id, date and unique variable value
+# Then converts them into columns
+sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
+#%%
+# Calculate mean values per id per date per unique variable
+
+meandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
+meandf.columns = 'mean' + meandf.columns
+#%%
+# Calculate std values per id per date per unique variable
+stddf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].std().unstack()
+stddf.columns = 'std' + stddf.columns
+#%%
+# Calculate std values per id per date per unique variable
+mediandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].median().unstack()
+mediandf.columns = 'median' + mediandf.columns
+
+#%%
+finaldf = pd.concat([meandf, stddf, mediandf, sumdf], axis=1, sort=False)
+finaldf
+
+
 #%%
