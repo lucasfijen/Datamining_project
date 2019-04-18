@@ -48,7 +48,7 @@ final['shifted_interpol_mean_mood'] = final.groupby(['id'])['interpol_mean_mood'
 print(final[['interpolate_bool', 'interpol_mean_mood', 'mean_mood']])
 
 sumdf#%%
-final.to_pickle('../database_basic.pkl')
+final.to_pickle('database_basic.pkl')
 print('Saved in database_basic.pkl')
 
 #%%
