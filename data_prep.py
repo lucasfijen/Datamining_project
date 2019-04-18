@@ -8,10 +8,6 @@ import numpy as np
 df = pd.read_csv('../dataset_mood_smartphone.csv', index_col=0)
 df['time'] = pd.to_datetime(df['time'])
 
-df.head()
-
-#%%
-
 # Help function to split days
 def split_to_days(x, splitvalue):
     if x.hour > splitvalue:
@@ -27,49 +23,32 @@ df['subtractedtime'] = df.time.apply(lambda x: split_to_days(x, hourdaystarts))
 df['date'] = df['subtractedtime'].dt.date
 df['day'] = df['subtractedtime'].dt.weekday
 
-#%% ADDING COLUMNS
-sumdf = df[~df.variable.isin(['screen', 'call', 'sms', 'appCat.builtin', 'appCat.communication', 'appCat.entertainment', 'appCat.finance', 'appCat.game', 'appCat.office', 'appCat.other', 'appCat.social', 'appCat.travel','appCat.unknown', 'appCat.utilities', 'appCat.weather'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
+# SUM FOR ALL OTHERS
+sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
+sumdf.columns = 'sum_' + sumdf.columns
 
-# Calculate mean values per id per date per unique variable
+# MEAN FOR MOOD, AROUSAL, VALENCE & ACTIVITY
 meandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
 meandf.columns = 'mean_' + meandf.columns
 
-# Calculate std values per id per date per unique variable
+# STD FOR MOOD, AROUSAL, VALENCE & ACTIVITY
 stddf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].std().unstack()
 stddf.columns = 'std_' + stddf.columns
 
-# Calculate median values per id per date per unique variable
-# mediandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].median().unstack()
-# mediandf.columns = 'median' + mediandf.columns
+# CONCAT IN FINAL DF
+final = pd.concat([meandf, stddf, sumdf], axis=1, sort=True)
 
 # INTERPOLATE MEAN MOOD
-meandf['interpol_mean_mood'] = meandf['mean_mood'].groupby(['id']).fillna(method='ffill')
+final['interpolate_bool'] = final['mean_mood'].isnull().astype(int)
+final['interpol_mean_mood'] = final['mean_mood'].groupby(['id']).fillna(method='ffill')
 
 # SHIFT INTERPOLATED MEAN MOOD FOR TARGET COLUMN
-meandf['shifted_interpol_mean_mood'] = meandf.groupby(['id'])['interpol_mean_mood'].transform(lambda x:x.shift())
-# print(meandf['mean_mood'])
-print(meandf[['interpol_mean_mood', 'shifted_interpol_mean_mood']].iloc[0:300])
+final['shifted_interpol_mean_mood'] = final.groupby(['id'])['interpol_mean_mood'].transform(lambda x:x.shift(-1))
 
-# interpolated_mood = meandf['mood'].fillna
+print(final[['interpolate_bool', 'interpol_mean_mood', 'mean_mood']])
 
-# targetdf = df[df.variable == 'mood'].copy()
-# del targetdf['date']
-# targetdf['date'] = df.subtractedtime.apply(lambda x: x - datetime.timedelta(days = 1)).dt.date
-# # # Create a df with the mean values of a mood per day
-# targetdf = targetdf.groupby(['id', 'date', 'variable'])['value'].mean().unstack()
-# targetdf.columns = 'target' + targetdf.columns
-
-# # Concatenates these dfs into one
-# finaldf = pd.concat([targetdf, meandf, stddf, mediandf, sumdf], axis=1, sort=True)
-
-# finaldf.to_pickle('../database.pkl')
-# print('Saved in database.pkl')
-
-# finaldf.head()
-
-#%%
-
-finaldf.columns
-
+sumdf#%%
+final.to_pickle('../database_basic.pkl')
+print('Saved in database_basic.pkl')
 
 #%%
