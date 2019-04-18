@@ -90,23 +90,26 @@ final.loc[:, ~final.columns.isin(['mood', 'mean_activity', 'mean_circumplex.arou
        'mean_mood', 'std_activity', 'std_circumplex.arousal',
        'std_circumplex.valence', 'std_mood'])].fillna(0)
 
+
+# final.to_csv('final.csv')
+
 # INTERPOLATE MEAN MOOD
 final['interpolate_mood_bool'] = final['mean_mood'].isnull().astype(int)
-final['mean_mood'] = final['mean_mood'].groupby(['id']).fillna(method='ffill')
+final[['mean_mood', 'std_mood']] = final[['mean_mood', 'std_mood']].groupby(['id']).fillna(method='ffill')
 
 final['interpolate_arousal_bool'] = final['mean_circumplex.arousal'].isnull().astype(int)
-final['mean_circumplex.arousal'] = final['mean_circumplex.arousal'].groupby(['id']).fillna(method='ffill')
+final[['mean_circumplex.arousal', 'std_circumplex.arousal']] = final[['mean_circumplex.arousal', 'std_circumplex.arousal']].groupby(['id']).fillna(method='ffill')
 
 final['interpolate_valence_bool'] = final['mean_circumplex.valence'].isnull().astype(int)
-final['mean_circumplex.valence'] = final['mean_circumplex.valence'].groupby(['id']).fillna(method='ffill')
+final[['mean_circumplex.valence', 'std_circumplex.valence']] = final[['mean_circumplex.valence', 'std_circumplex.valence']].groupby(['id']).fillna(method='ffill')
 
 final['interpolate_activity_bool'] = final['mean_activity'].isnull().astype(int)
-final['mean_activity'] = final['mean_activity'].groupby(['id']).fillna(method='ffill')
+final[['mean_activity', 'std_activity']] = final[['mean_activity', 'std_activity']].groupby(['id']).fillna(method='ffill')
 
 # SHIFT INTERPOLATED MEAN MOOD FOR TARGET COLUMN
 final['shifted_target_mood_bool'] = final.groupby(['id'])['interpolate_mood_bool'].transform(lambda x:x.shift(-1))
 final['target_mood'] = final['mean_mood'].groupby(['id']).transform(lambda x:x.shift(-1))
-
+# final.to_csv('final.csv')
 # DROPPING THE NA's THAT STILL OCCUR, ARE THE DATA BEFORE THE FIRST 
 # OCCURANCE OF THE VALUE, THUS THE ONES WE CANT INTERPOLATE
 final.dropna(axis=0, how='any', inplace=True)
@@ -114,12 +117,4 @@ final.dropna(axis=0, how='any', inplace=True)
 #%%
 final.to_pickle('database_basic.pkl')
 print('Saved in database_basic.pkl')
-
-#%%
-# for user in final.reset_index().id.unique():
-#     print(final.loc[user, ['interpolate_mood_bool', 'mean_mood', 'mean_circumplex.arousal', 'mean_circumplex.valence', 'mean_activity', 'target_mood']])
-# final.interpolate_mood_bool.value_counts()
-
-
-
 #%%
