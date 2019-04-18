@@ -6,6 +6,10 @@ import numpy as np
 from sklearn.svm import SVR
 import numpy as np
 
+TRAIN_P = 0.6
+VALID_P = 0.2
+TEST_P = 0.2
+
 database = pd.read_pickle('database_basic.pkl')
 database.head()
 
@@ -33,9 +37,7 @@ database_with_history = pd.concat([database.iloc[:, :].reset_index(), history], 
 
 # print(database_with_history['id'])
 
-TRAIN_P = 0.6
-VALID_P = 0.2
-TEST_P = 0.2
+
 
 X_train = []
 X_valid = []
