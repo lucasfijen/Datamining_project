@@ -24,12 +24,49 @@ df['subtractedtime'] = df.time.apply(lambda x: split_to_days(x, hourdaystarts))
 df['date'] = df['subtractedtime'].dt.date
 df['day'] = df['subtractedtime'].dt.weekday
 
-# NORMALISATION
-# print(df.variable.unique())
-# print(df[df.variable.isin(['circumplex.arousal', 'circumplex.valence'])].value * 100)
+# Replacing every value with amount of times on apps or screen that are negative,
+# Considered as invallid values, thus set to 0
+df.loc[(df.variable.isin(['appCat.builtin',
+                         'appCat.communication', 
+                         'appCat.entertainment', 
+                         'appCat.finance', 
+                         'appCat.game', 
+                         'appCat.office', 
+                         'appCat.other', 
+                         'appCat.social', 
+                         'appCat.travel', 
+                         'appCat.unknown', 
+                         'appCat.utilities', 
+                         'appCat.weather',
+                         'screen'])) & (df.value < 0), 'value'] = 0
 
-# df[df.variable.isin(['circumplex.arousal', 'circumplex.valence'])].value = df[df.variable.isin(['circumplex.arousal', 'circumplex.valence'])].value * 1000
-# print(df[df.variable.isin(['circumplex.arousal', 'circumplex.valence'])].value)
+# NORMALISATION all values to range [0-1]
+df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] += 2
+df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] /= 4
+
+# Moods are now from 1-10, should be [0-1]
+df.loc[df.variable.isin(['mood']), 'value'] -= 1
+df.loc[df.variable.isin(['mood']), 'value'] /= 9
+
+# Normalise from seconds to range [0-1]
+df.loc[df.variable.isin(['appCat.builtin',
+                         'appCat.communication', 
+                         'appCat.entertainment', 
+                         'appCat.finance', 
+                         'appCat.game', 
+                         'appCat.office', 
+                         'appCat.other', 
+                         'appCat.social', 
+                         'appCat.travel', 
+                         'appCat.unknown', 
+                         'appCat.utilities', 
+                         'appCat.weather',
+                         'screen']), 'value'] /= 216000
+
+# NORMALISATION OF THE COUNTS OF SMS AND CALLS
+# There is no maximum amount of calls per day, but we chose a high value
+# which is way higher than the highest observed value in the trainingdata
+df.loc[df.variable.isin(['sms', 'call']), 'value'] /= 50
 
 # SUM FOR ALL OTHERS
 sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
@@ -53,8 +90,6 @@ final.loc[:, ~final.columns.isin(['mood', 'mean_activity', 'mean_circumplex.arou
        'mean_mood', 'std_activity', 'std_circumplex.arousal',
        'std_circumplex.valence', 'std_mood'])].fillna(0)
 
-
-
 # INTERPOLATE MEAN MOOD
 final['interpolate_mood_bool'] = final['mean_mood'].isnull().astype(int)
 final['mean_mood'] = final['mean_mood'].groupby(['id']).fillna(method='ffill')
@@ -70,7 +105,7 @@ final['mean_activity'] = final['mean_activity'].groupby(['id']).fillna(method='f
 
 # SHIFT INTERPOLATED MEAN MOOD FOR TARGET COLUMN
 final['shifted_target_mood_bool'] = final.groupby(['id'])['interpolate_mood_bool'].transform(lambda x:x.shift(-1))
-final['target_mood'] = final.groupby(['id'])['mean_mood'].transform(lambda x:x.shift(-1))
+final['target_mood'] = final['mean_mood'].groupby(['id']).transform(lambda x:x.shift(-1))
 
 # DROPPING THE NA's THAT STILL OCCUR, ARE THE DATA BEFORE THE FIRST 
 # OCCURANCE OF THE VALUE, THUS THE ONES WE CANT INTERPOLATE
@@ -81,6 +116,10 @@ final.to_pickle('database_basic.pkl')
 print('Saved in database_basic.pkl')
 
 #%%
-final['mean_circumplex.arousal']
+# for user in final.reset_index().id.unique():
+#     print(final.loc[user, ['interpolate_mood_bool', 'mean_mood', 'mean_circumplex.arousal', 'mean_circumplex.valence', 'mean_activity', 'target_mood']])
+# final.interpolate_mood_bool.value_counts()
+
+
 
 #%%
