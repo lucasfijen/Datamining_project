@@ -3,9 +3,14 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+
 # Loading the database from a folder 1 hierarchy higher
 df = pd.read_csv('../dataset_mood_smartphone.csv', index_col=0)
 df['time'] = pd.to_datetime(df['time'])
+
+df.head()
+
+#%%
 
 # Help function to split days
 def split_to_days(x, splitvalue):
@@ -22,6 +27,7 @@ df['subtractedtime'] = df.time.apply(lambda x: split_to_days(x, hourdaystarts))
 df['date'] = df['subtractedtime'].dt.date
 df['day'] = df['subtractedtime'].dt.weekday
 
+#%% ADDING COLUMNS
 sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
 # sumdf
 
@@ -46,5 +52,15 @@ targetdf.columns = 'target' + targetdf.columns
 
 # Concatenates these dfs into one
 finaldf = pd.concat([targetdf, meandf, stddf, mediandf, sumdf], axis=1, sort=True)
+
 finaldf.to_pickle('../database.pkl')
 print('Saved in database.pkl')
+
+finaldf.head()
+
+#%%
+
+finaldf.columns
+
+
+#%%
