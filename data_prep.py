@@ -3,9 +3,10 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 # Loading the database from a folder 1 hierarchy higher
-df = pd.read_csv('../dataset_mood_smartphone.csv', index_col=0)
+df = pd.read_csv('/Users/janzuiderveld/Documents/GitHub/dataset_mood_smartphone.csv', index_col=0)
 df['time'] = pd.to_datetime(df['time'])
 df = df.drop_duplicates()
 
@@ -41,36 +42,61 @@ df.loc[(df.variable.isin(['appCat.builtin',
                          'screen'])) & (df.value < 0), 'value'] = 0
 
 # NORMALISATION all values to range [0-1]
-df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] += 2
-df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] /= 4
+#StandardScaling
+Scaler = StandardScaler()
+Scaler.fit(df.loc[df.variable.isin(['circumplex.valence']), 'value'].values.reshape(-1,1))
+df.loc[df.variable.isin(['circumplex.valence']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['circumplex.valence']), 'value'].values.reshape(-1,1))
 
-# Moods are now from 1-10, should be [0-1]
-df.loc[df.variable.isin(['mood']), 'value'] -= 1
-df.loc[df.variable.isin(['mood']), 'value'] /= 9
+Scaler = StandardScaler()
+Scaler.fit(df.loc[df.variable.isin(['circumplex.arousal']), 'value'].values.reshape(-1,1))
+df.loc[df.variable.isin(['circumplex.arousal']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['circumplex.arousal']), 'value'].values.reshape(-1,1))
+
+#Normalization
+# df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] += 2
+# df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] /= 4
+
+#%% Moods are now from 1-10, should be [0-1]
+#StandardScaling
+Scaler = StandardScaler()
+Scaler.fit(df.loc[df.variable.isin(['mood']), 'value'].values.reshape(-1,1))
+df.loc[df.variable.isin(['mood']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['mood']), 'value'].values.reshape(-1,1))
+
+#Normalization
+# df.loc[df.variable.isin(['mood']), 'value'] -= 1
+# df.loc[df.variable.isin(['mood']), 'value'] /= 9
 
 # Normalise from seconds to range [0-1]
-df.loc[df.variable.isin(['appCat.builtin',
-                         'appCat.communication', 
-                         'appCat.entertainment', 
-                         'appCat.finance', 
-                         'appCat.game', 
-                         'appCat.office', 
-                         'appCat.other', 
-                         'appCat.social', 
-                         'appCat.travel', 
-                         'appCat.unknown', 
-                         'appCat.utilities', 
-                         'appCat.weather',
-                         'screen']), 'value'] /= 216000
+# df.loc[df.variable.isin(['appCat.builtin',
+#                          'appCat.communication', 
+#                          'appCat.entertainment', 
+#                          'appCat.finance', 
+#                          'appCat.game', 
+#                          'appCat.office', 
+#                          'appCat.other', 
+#                          'appCat.social', 
+#                          'appCat.travel', 
+#                          'appCat.unknown', 
+#                          'appCat.utilities', 
+#                          'appCat.weather',
+#                          'screen']), 'value'] /= 216000
 
 # NORMALISATION OF THE COUNTS OF SMS AND CALLS
 # There is no maximum amount of calls per day, but we chose a high value
 # which is way higher than the highest observed value in the trainingdata
-df.loc[df.variable.isin(['sms', 'call']), 'value'] /= 50
+# df.loc[df.variable.isin(['sms', 'call']), 'value'] /= 50
 
 # SUM FOR ALL OTHERS
 sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
 sumdf.columns = 'sum_' + sumdf.columns
+
+# Standardize
+Scaler = StandardScaler()
+Scaler.fit(sumdf.values)
+sumdf.loc[~sumdf.variable.isin(['lel']), 'value'] = Scaler.transform(sumdf.loc[~df.variable.isin(['lel']), 'value'])
+
+# sumdf = sumdf.loc[sumdf.variable.isin(['mood']), 'value'].values.reshape(-1,1))
+# sumdfScaled = pd.DataFrame(Scaler.transform((sumdf.values)))
+# sumdfScaled.columns = 'sum_' + sumdf.columns
 
 # MEAN FOR MOOD, AROUSAL, VALENCE & ACTIVITY
 meandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
@@ -81,7 +107,7 @@ stddf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence',
 stddf.columns = 'std_' + stddf.columns
 
 # CONCAT IN FINAL DF
-final = pd.concat([meandf, stddf, sumdf], axis=1, sort=True)
+final = pd.concat([meandf, stddf, sumdfScaled], axis=1, sort=True)
 
 #Filling na with 0 for all sum columns
 final.loc[:, ~final.columns.isin(['mood', 'mean_activity', 'mean_circumplex.arousal', 'mean_circumplex.valence',
@@ -115,6 +141,7 @@ final['target_mood'] = final['mean_mood'].groupby(['id']).transform(lambda x:x.s
 final.dropna(axis=0, how='any', inplace=True)
 
 #%%
-final.to_pickle('database_basic.pkl')
+final.to_pickle('/Users/janzuiderveld/Documents/GitHub/database_basic.pkl')
 print('Saved in database_basic.pkl')
+final.to_csv('/Users/janzuiderveld/Documents/GitHub/database_basic.csv')
 #%%
