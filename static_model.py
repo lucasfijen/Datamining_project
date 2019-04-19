@@ -37,8 +37,6 @@ database_with_history = pd.concat([database.iloc[:, :].reset_index(), history], 
 
 # print(database_with_history['id'])
 
-
-
 X_train = []
 X_valid = []
 X_test = []
@@ -76,9 +74,23 @@ clf.fit(X_train, y_train)
 y_valid_predict = clf.predict(X_valid)
 y_test_predict = clf.predict(X_test)
 
-mse_valid = (abs(y_valid_predict.reshape(-1, 1) - y_valid)).mean(axis=0)
-print(mse_valid)
-mse_test = (abs(y_test_predict.reshape(-1, 1) - y_test)).mean(axis=0)
-print(mse_test)
+mse_valid = ((y_valid_predict.reshape(-1, 1) - y_valid)**2).mean(axis=0)
+print('SVM valid', mse_valid)
+mse_test = ((y_test_predict.reshape(-1, 1) - y_test)**2).mean(axis=0)
+print('SVM test', mse_test)
+
+#%% FIT LINEAR REGRESSION
+from sklearn.linear_model import LinearRegression
+
+reg = LinearRegression().fit(X_train, y_train)
+
+y_valid_predict = reg.predict(X_valid)
+y_test_predict = reg.predict(X_test)
+
+mse_valid = ((y_valid_predict.reshape(-1, 1) - y_valid)**2).mean(axis=0)
+print('LINREG valid', mse_valid)
+
+mse_test = ((y_test_predict.reshape(-1, 1) - y_test)**2).mean(axis=0)
+print('LINREG test', mse_test)
 
 #%%

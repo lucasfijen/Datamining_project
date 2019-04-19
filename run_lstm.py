@@ -66,18 +66,29 @@ X_test = []
 y_train = []
 y_valid = []
 y_test = []
+
+train_lengths = []
+# length train + validation
+valid_lengths = []
 for _, group in database.groupby(['id']):
     length = group.shape[0]
     train_valid_split = int(length * TRAIN_P)
     valid_test_split = int(length * (1 - TEST_P))
+
+    train_lengths.append(train_valid_split)
+    valid_lengths.append(valid_test_split)
     y_train.append(group.iloc[:train_valid_split]['target_mood'].values)
     y_valid.append(group.iloc[train_valid_split:valid_test_split]['target_mood'].values)
     y_test.append(group.iloc[valid_test_split:]['target_mood'].values)
+
     cols = [c for c in group.columns if ('bool' not in c) and ('target' not in c) and ('date' not in c) and ('id' not in c)]
     group = group[cols]
+    
     X_train.append(group.iloc[:train_valid_split].values)
-    X_valid.append(group.iloc[train_valid_split:valid_test_split].values)
-    X_test.append(group.iloc[valid_test_split:].values)
+    X_valid.append(group.iloc[:valid_test_split].values)
+    X_test.append(group.values)
+
+print(train_lengths)
 
 #%% TRAIN
 
@@ -96,8 +107,9 @@ loss_fn = torch.nn.MSELoss()
 
 train_losses = []
 valid_losses = []
-for e in range(100):
+for e in range(150):
     for i, sequence in enumerate(X_train):
+        
         # print(e, i, '/', len(X_train))
         # print('length sequence:', sequence.shape[0])
         # print('number of features:', sequence.shape[1])
@@ -108,15 +120,20 @@ for e in range(100):
         # print(y_pred)
 
         our_loss = ((y_pred.data.numpy() - y_train[i])**2).mean()
-        loss = loss_fn(y_pred, torch.from_numpy(y_train[i]).float())
+        train_loss = loss_fn(y_pred, torch.from_numpy(y_train[i]).float())
 
-        train_losses.append(loss)
+        train_losses.append(train_loss)
 
         # VALID
         valid_loss = 0
         for j in range(len(X_valid)):
+
             input = torch.from_numpy(X_valid[j]).float()
             y_pred = lstm_model(input)
+            
+            # CUT OFF PREDICTION PART THAT WAS ALREADY IN TRAIN
+            y_pred = y_pred[train_lengths[j]:]
+            
             our_loss = ((y_pred.data.numpy() - y_valid[j])**2).mean() 
             valid_loss += our_loss 
         valid_losses.append(valid_loss/len(X_valid))
@@ -127,10 +144,15 @@ for e in range(100):
         optimiser.zero_grad()
 
         # Backward pass
-        loss.backward()
+        train_loss.backward()
 
         # Update parameters
         optimiser.step()
+    
+    if (e % 25) == 0:
+        print('Epoch:', e)
+        print('train loss:', train_loss.item())
+        print('valid loss:', valid_loss/len(X_valid))
 
 plt.plot(train_losses, label='train')
 plt.plot(valid_losses, label='valid')
@@ -144,9 +166,16 @@ for i in range(len(X_test)):
     input = torch.from_numpy(X_test[i]).float()
     # print(input.shape)
     pred = lstm_model(input)
-    # print(y_test.shape
+    
+    # CUT OFF PREDICTION PART THAT WAS ALREADY IN TRAIN
+    y_pred = pred.data.numpy()
+    # print(len(y_pred))
     # print(len(y_test[i]))
-    total_loss += ((pred.data.numpy() - y_test[i])**2).mean()
+    # print(valid_lengths[i])
+    y_pred = y_pred[valid_lengths[i]:]
+
+    total_loss += ((y_pred - y_test[i])**2).mean()
+
 print('total test loss', total_loss.item()/len(X_test))
 
 # total_loss = 0
