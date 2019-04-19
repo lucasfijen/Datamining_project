@@ -59,10 +59,26 @@ VALID_P = 0.2
 TEST_P = 0.2
 
 # database = pd.read_pickle('database_basic_old_normalisation.pkl')
-database = pd.read_csv('database_new_standardisation.csv', index_col=0)
-database = database.reset_index()
-database = database.set_index(['id', 'date'])
-database.head()
+# database = pd.read_csv('database_new_standardisation.csv', index_col=0)
+# database = database.reset_index()
+# database = database.set_index(['id', 'date'])
+# database.head()
+
+database_standard = pd.read_csv('database_basic_stand.csv', index_col=0)
+database_standard = database_standard.reset_index()
+# database_standard = database_standard.set_index(['id', 'date'])
+database_norm = pd.read_csv('database_basic_norm.csv', index_col=0)
+database_norm = database_norm.reset_index()
+# database_norm = database_norm.set_index(['id', 'date'])
+
+# database = database_norm
+
+print(database_norm.max())
+print(database_standard.max())
+
+database = database_norm
+
+#%%
 
 X_train = []
 X_valid = []
@@ -125,7 +141,7 @@ def MSE_4(input, target):
 
 train_losses = []
 valid_losses = []
-for e in range(25):
+for e in range(50):
     for i, sequence in enumerate(X_train):
         # if (i == 3) or (i == 5):
         #     continue
@@ -148,7 +164,9 @@ for e in range(25):
 
         train_nr_not_interpolated = np.count_nonzero(y_train_bool[i])
 
+        
         train_loss = ((y_train_predict_corrected - y_train_corrected)**2).sum() / train_nr_not_interpolated 
+        # print(train_loss)
         train_losses.append(train_loss)
         
         # our_loss = ((y_pred.data.numpy() - y_train[i])**2).mean()
@@ -186,21 +204,24 @@ for e in range(25):
         # Update parameters
         optimiser.step()
     
-    if (e % 25) == 0 or (e == 24):
+    if (e % 5) == 0 or (e == 24):
         print('Epoch:', e)
         print('train loss:', train_loss.item())
         print('valid loss:', valid_loss/len(X_valid))
 #%%
 
-plt.plot(train_losses, label='train')
-plt.plot(valid_losses, label='valid')
-plt.title('Loss')
-plt.savefig('LSTM_26_epochs_30_hidden.png', dpi=200, facecolor='w')
-plt.legend()
-plt.show()
+# plt.plot(train_losses, label='train')
+# plt.plot(valid_losses, label='valid')
+# plt.title('Loss')
+# plt.savefig('LSTM_standardised.png', dpi=200, facecolor='w')
+# plt.legend()
+# plt.show()
 
 #%%
 total_loss = 0
+
+all_predictions = []
+
 for i in range(len(X_test)):
     input = torch.from_numpy(X_test[i]).float()
     pred = lstm_model(input)
@@ -208,6 +229,8 @@ for i in range(len(X_test)):
     # CUT OFF PREDICTION PART THAT WAS ALREADY IN TRAIN
     y_pred = pred.data.numpy()
     y_pred = y_pred[valid_lengths[i]:]
+    
+    all_predictions.append(np.squeeze(y_pred))
 
     # CORRECT FOR INTERPOLATION
     y_test_predict_corrected = np.squeeze(y_pred) * np.squeeze(y_test_bool[i])
@@ -216,4 +239,12 @@ for i in range(len(X_test)):
     test_nr_not_interpolated = np.count_nonzero(y_test_bool[i])
     total_loss += ((y_test_predict_corrected - y_test_corrected)**2).sum() / test_nr_not_interpolated 
 
+
+print('NORMALIZED')
+all_predictions = np.concatenate(all_predictions)
+print(list(all_predictions))
+print(len(all_predictions))
+
 print('total test loss', total_loss.item()/len(X_test))
+
+#%%

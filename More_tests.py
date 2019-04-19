@@ -13,10 +13,10 @@ from sklearn.preprocessing import StandardScaler
 # df = pd.read_csv('database_new_standardisation.csv', index_col=0)
 # df = df.reset_index()
 
-database_standard = pd.read_csv('database_basic_standardised.csv', index_col=0)
+database_standard = pd.read_csv('database_basic_stand.csv', index_col=0)
 database_standard = database_standard.reset_index()
 # database_standard = database_standard.set_index(['id', 'date'])
-database_norm = pd.read_csv('database_basic_normalisation.csv', index_col=0)
+database_norm = pd.read_csv('database_basic_norm.csv', index_col=0)
 database_norm = database_norm.reset_index()
 # database_norm = database_norm.set_index(['id', 'date'])
 
@@ -89,6 +89,9 @@ mse_train = ((X_train - y_train)**4).sum() / train_n
 mse_valid = ((X_valid - y_valid)**4).sum() / valid_n
 mse_test = ((X_test - y_test)**4).sum() / test_n
 mse_all = ((X_all - y_all)**4).sum() / all_n
+
+print('standardised')
+print(list(X_test))
 
 print('mse_train', mse_train)
 print('mse_valid', mse_valid)
