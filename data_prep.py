@@ -5,8 +5,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
+norm = True
+stand = False
+if norm & stand:
+    raise Exception("Can't use both standardisation and normalisation")
+
 # Loading the database from a folder 1 hierarchy higher
-df = pd.read_csv('/Users/janzuiderveld/Documents/GitHub/dataset_mood_smartphone.csv', index_col=0)
+df = pd.read_csv('../dataset_mood_smartphone.csv', index_col=0)
 df['time'] = pd.to_datetime(df['time'])
 df = df.drop_duplicates()
 
@@ -43,61 +48,67 @@ df.loc[(df.variable.isin(['appCat.builtin',
 
 # NORMALISATION all values to range [0-1]
 #StandardScaling
-Scaler = StandardScaler()
-Scaler.fit(df.loc[df.variable.isin(['circumplex.valence']), 'value'].values.reshape(-1,1))
-df.loc[df.variable.isin(['circumplex.valence']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['circumplex.valence']), 'value'].values.reshape(-1,1))
+if stand:
+    Scaler = StandardScaler()
+    Scaler.fit(df.loc[df.variable.isin(['circumplex.valence']), 'value'].values.reshape(-1,1))
+    df.loc[df.variable.isin(['circumplex.valence']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['circumplex.valence']), 'value'].values.reshape(-1,1))
 
-Scaler = StandardScaler()
-Scaler.fit(df.loc[df.variable.isin(['circumplex.arousal']), 'value'].values.reshape(-1,1))
-df.loc[df.variable.isin(['circumplex.arousal']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['circumplex.arousal']), 'value'].values.reshape(-1,1))
+    Scaler = StandardScaler()
+    Scaler.fit(df.loc[df.variable.isin(['circumplex.arousal']), 'value'].values.reshape(-1,1))
+    df.loc[df.variable.isin(['circumplex.arousal']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['circumplex.arousal']), 'value'].values.reshape(-1,1))
 
 #Normalization
-# df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] += 2
-# df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] /= 4
+if norm:
+    df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] += 2
+    df.loc[df.variable.isin(['circumplex.arousal', 'circumplex.valence']), 'value'] /= 4
 
-#%% Moods are now from 1-10, should be [0-1]
+#Moods are now from 1-10, should be [0-1]
 #StandardScaling
-Scaler = StandardScaler()
-Scaler.fit(df.loc[df.variable.isin(['mood']), 'value'].values.reshape(-1,1))
-df.loc[df.variable.isin(['mood']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['mood']), 'value'].values.reshape(-1,1))
+if stand:
+    Scaler = StandardScaler()
+    Scaler.fit(df.loc[df.variable.isin(['mood']), 'value'].values.reshape(-1,1))
+    df.loc[df.variable.isin(['mood']), 'value'] = Scaler.transform(df.loc[df.variable.isin(['mood']), 'value'].values.reshape(-1,1))
 
 #Normalization
-# df.loc[df.variable.isin(['mood']), 'value'] -= 1
-# df.loc[df.variable.isin(['mood']), 'value'] /= 9
+if norm:
+    df.loc[df.variable.isin(['mood']), 'value'] -= 1
+    df.loc[df.variable.isin(['mood']), 'value'] /= 9
 
 # Normalise from seconds to range [0-1]
-# df.loc[df.variable.isin(['appCat.builtin',
-#                          'appCat.communication', 
-#                          'appCat.entertainment', 
-#                          'appCat.finance', 
-#                          'appCat.game', 
-#                          'appCat.office', 
-#                          'appCat.other', 
-#                          'appCat.social', 
-#                          'appCat.travel', 
-#                          'appCat.unknown', 
-#                          'appCat.utilities', 
-#                          'appCat.weather',
-#                          'screen']), 'value'] /= 216000
+if norm:
+    df.loc[df.variable.isin(['appCat.builtin',
+                            'appCat.communication', 
+                            'appCat.entertainment', 
+                            'appCat.finance', 
+                            'appCat.game', 
+                            'appCat.office', 
+                            'appCat.other', 
+                            'appCat.social', 
+                            'appCat.travel', 
+                            'appCat.unknown', 
+                            'appCat.utilities', 
+                            'appCat.weather',
+                            'screen']), 'value'] /= 216000
 
 # NORMALISATION OF THE COUNTS OF SMS AND CALLS
 # There is no maximum amount of calls per day, but we chose a high value
 # which is way higher than the highest observed value in the trainingdata
-# df.loc[df.variable.isin(['sms', 'call']), 'value'] /= 50
+if norm:
+    df.loc[df.variable.isin(['sms', 'call']), 'value'] /= 50   
 
 # SUM FOR ALL OTHERS
 sumdf = df[~df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
 sumdf.columns = 'sum_' + sumdf.columns
 
 # Standardize
-Scaler = StandardScaler()
-Scaler.fit(sumdf.values)
+if stand:
+    Scaler = StandardScaler()
+    Scaler.fit(sumdf.values)
 
-# sumdf.loc[~sumdf.variable.isin(['lel']), 'value'] = Scaler.transform(sumdf.loc[~df.variable.isin(['lel']), 'value'])
-
-sumdfScaled = pd.DataFrame(Scaler.transform((sumdf.values)))
-sumdfScaled.columns = 'sum_' + sumdf.columns
-sumdfScaled.index = sumdf.index.copy()
+    sumdfScaled = pd.DataFrame(Scaler.transform((sumdf.values)))
+    sumdfScaled.columns = sumdf.columns
+    sumdfScaled.index = sumdf.index.copy()
+    sumdf = sumdfScaled
 
 # MEAN FOR MOOD, AROUSAL, VALENCE & ACTIVITY
 meandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
@@ -108,7 +119,7 @@ stddf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence',
 stddf.columns = 'std_' + stddf.columns
 
 # CONCAT IN FINAL DF
-final = pd.concat([meandf, stddf, sumdfScaled], axis=1, sort=True)
+final = pd.concat([meandf, stddf, sumdf], axis=1, sort=True)
 
 #Filling na with 0 for all sum columns
 final.loc[:, ~final.columns.isin(['mood', 'mean_activity', 'mean_circumplex.arousal', 'mean_circumplex.valence',
@@ -116,9 +127,6 @@ final.loc[:, ~final.columns.isin(['mood', 'mean_activity', 'mean_circumplex.arou
        'std_circumplex.valence', 'std_mood'])] = final.loc[:, ~final.columns.isin(['mood', 'mean_activity', 'mean_circumplex.arousal', 'mean_circumplex.valence',
        'mean_mood', 'std_activity', 'std_circumplex.arousal',
        'std_circumplex.valence', 'std_mood'])].fillna(0)
-
-
-# final.to_csv('final.csv')
 
 # INTERPOLATE MEAN MOOD
 final['interpolate_mood_bool'] = final['mean_mood'].isnull().astype(int)
@@ -141,8 +149,24 @@ final['target_mood'] = final['mean_mood'].groupby(['id']).transform(lambda x:x.s
 # OCCURANCE OF THE VALUE, THUS THE ONES WE CANT INTERPOLATE
 final.dropna(axis=0, how='any', inplace=True)
 
-#%%
-final.to_pickle('/Users/janzuiderveld/Documents/GitHub/database_basic.pkl')
+#%%your preamble, so other people can try to compile your example. My guess is you need to load the booktabs package 
+final.to_pickle('../database_basic.pkl')
 print('Saved in database_basic.pkl')
-final.to_csv('/Users/janzuiderveld/Documents/GitHub/database_basic.csv')
+final.to_csv('../database_basic.csv')
+#%%
+df = final[['mean_activity', 'mean_circumplex.arousal', 'mean_circumplex.valence',
+       'mean_mood', 'std_activity', 'std_circumplex.arousal',
+       'std_circumplex.valence', 'std_mood', 'sum_appCat.builtin',
+       'sum_appCat.communication', 'sum_appCat.entertainment',
+       'sum_appCat.finance', 'sum_appCat.game',
+       'sum_appCat.office', 'sum_appCat.other',
+       'sum_appCat.social', 'sum_appCat.travel',
+       'sum_appCat.unknown', 'sum_appCat.utilities',
+       'sum_appCat.weather', 'sum_call', 'sum_screen',
+       'sum_sms','target_mood']]
+
+df_cor = df.corr()
+# pd.DataFrame(np.linalg.inv(df.corr().values), index = df_cor.index, columns=df_cor.columns)
+print(pd.Series(np.linalg.inv(df.corr().values).diagonal(), index=df_cor.index).round(2).to_latex())
+
 #%%
