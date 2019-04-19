@@ -4,8 +4,9 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+import calendar
 
-norm = True
+norm = False
 stand = False
 if norm & stand:
     raise Exception("Can't use both standardisation and normalisation")
@@ -149,11 +150,18 @@ final['target_mood'] = final['mean_mood'].groupby(['id']).transform(lambda x:x.s
 # OCCURANCE OF THE VALUE, THUS THE ONES WE CANT INTERPOLATE
 final.dropna(axis=0, how='any', inplace=True)
 
+# One hot encoding the weekdays
+weekdaydf = pd.get_dummies(final.reset_index().date.dt.weekday)
+weekdaydf.columns = [calendar.day_abbr[i] for i in weekdaydf.columns]
+weekdaydf.index = final.index
+final[weekdaydf.columns] = weekdaydf
+
 #%%your preamble, so other people can try to compile your example. My guess is you need to load the booktabs package 
 final.to_pickle('../database_basic.pkl')
 print('Saved in database_basic.pkl')
 final.to_csv('../database_basic.csv')
 #%%
+# Calculate VIF
 df = final[['mean_activity', 'mean_circumplex.arousal', 'mean_circumplex.valence',
        'mean_mood', 'std_activity', 'std_circumplex.arousal',
        'std_circumplex.valence', 'std_mood', 'sum_appCat.builtin',
@@ -170,3 +178,20 @@ df_cor = df.corr()
 print(pd.Series(np.linalg.inv(df.corr().values).diagonal(), index=df_cor.index).round(2).to_latex())
 
 #%%
+# Create latex table with percentages
+missingseries = (final == 0).sum(axis=0)
+notmissingseries = (final != 0).sum(axis=0)
+percentageseries = (missingseries / (notmissingseries + missingseries)) * 100
+nadf = pd.DataFrame(percentageseries).transpose()
+selected_columns = [col for col in nadf.columns if 'sum' in col]
+nadf = nadf[selected_columns]
+nadf = nadf.transpose().round(1)
+nadf.columns = ['Percentage missing']
+nadf = nadf.sort_values(by='Percentage missing', ascending=False)
+nadf['Percentage missing'] = nadf['Percentage missing'].astype(str) + '%'
+print(nadf.to_latex())
+
+# (final == 0).sum(axis=0) + (final != 0).sum(axis=0)
+# sumdf.isna().sum(axis=0)
+# finaldf.count(axis=0) + finaldf.isna().sum(axis=0)
+# sumdf.shape
