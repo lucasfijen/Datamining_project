@@ -52,7 +52,6 @@ plt.show()
 # Plotting moods per day per user
 for i in mooddf.id.unique():
     mooddf[mooddf.id == i].boxplot(grid=False, column=['value'], by='day')
-
     plt.title(i)
 
     plt.show()
@@ -133,5 +132,37 @@ print('mse: %.3f' % mse)
 print('r value: %.3f' % r)
 #%%
 
+
+#%%
+for i in df.variable.unique():
+    df[df.variable == i].value.hist(bins=100)
+    plt.title(i)
+    plt.show()
+
+#%%
+
+for i in df.id.unique():
+    mooddf = df[(df.variable == 'mood') & (df.id == i)].sort_values(by=['date'])
+    plt.plot(mooddf['date'], mooddf['value'])
+    plt.title(i)
+    plt.show()
+
+#%%
+for i in sumdf.columns:
+    sumdf[i].hist()
+    plt.title(i)
+    plt.show()
+
+#%%
+sumdf.min()
+
+#%%
+df[df.variable == 'activity'].value.hist()
+
+#%%
+#%%
+sumdf.isna().sum(axis=0)
+# finaldf.count(axis=0) + finaldf.isna().sum(axis=0)
+# sumdf.shape
 
 #%%

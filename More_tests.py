@@ -13,10 +13,10 @@ from sklearn.preprocessing import StandardScaler
 # df = pd.read_csv('database_new_standardisation.csv', index_col=0)
 # df = df.reset_index()
 
-database_standard = pd.read_csv('database_basic_standardised.csv', index_col=0)
-database_standard = database_standard.reset_index()
+database_standard = pd.read_pickle('../database_basic_stand')
 # database_standard = database_standard.set_index(['id', 'date'])
-database_norm = pd.read_csv('database_basic_normalisation.csv', index_col=0)
+database_standard = database_standard.reset_index()
+database_norm = pd.read_pickle('../database_basic_norm')
 database_norm = database_norm.reset_index()
 # database_norm = database_norm.set_index(['id', 'date'])
 

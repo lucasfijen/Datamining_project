@@ -158,14 +158,17 @@ final[weekdaydf.columns] = weekdaydf
 
 #%%your preamble, so other people can try to compile your example. My guess is you need to load the booktabs package 
 if norm:
-    final.to_pickle('../database_basic_norm.pkl')
+    final.to_pickle('../database_basic_norm')
+    final.to_csv('../database_basic_norm.csv')
 elif stand:
     final.to_pickle('../database_basic_stand')
+    final.to_csv('../database_basic_stand.csv')
 else:
     final.to_pickle('../database_basic_basic')
+    final.to_csv('../database_basic_basic.csv')
 
 print('Saved in database_basic.pkl')
-final.to_csv('../database_basic.csv')
+# final.to_csv('../database_basic.csv')
 #%%
 # Calculate VIF
 df = final[['mean_activity', 'mean_circumplex.arousal', 'mean_circumplex.valence',
