@@ -8,6 +8,7 @@ class LSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, batch_size, output_dim=1, num_layers=2):
         super(LSTM, self).__init__()
         self.input_dim = input_dim
+        print('test',self.input_dim,'test')
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
         self.num_layers = num_layers
@@ -29,10 +30,11 @@ class LSTM(nn.Module):
         # a = hidden, b = cellstate
         # shape of self.hidden: (a, b), where a and b both 
         # have shape (num_layers, batch_size, hidden_dim).
-        print(input.size())
+        # print(input.size())
         # seq_len, batch_size, embedding_size
         # print(input.view(len(input), self.batch_size, 25))
-        lstm_out, self.hidden = self.lstm(input.view(len(input), self.batch_size, 25))
+        print('test2', len(input), self.batch_size, self.input_dim), 'test2')
+        lstm_out, self.hidden = self.lstm(input.view(len(input), self.batch_size, self.input_dim))
         
         print(lstm_out.size())
 
