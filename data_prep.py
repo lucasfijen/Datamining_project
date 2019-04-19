@@ -92,11 +92,12 @@ sumdf.columns = 'sum_' + sumdf.columns
 # Standardize
 Scaler = StandardScaler()
 Scaler.fit(sumdf.values)
-sumdf.loc[~sumdf.variable.isin(['lel']), 'value'] = Scaler.transform(sumdf.loc[~df.variable.isin(['lel']), 'value'])
 
-# sumdf = sumdf.loc[sumdf.variable.isin(['mood']), 'value'].values.reshape(-1,1))
-# sumdfScaled = pd.DataFrame(Scaler.transform((sumdf.values)))
-# sumdfScaled.columns = 'sum_' + sumdf.columns
+# sumdf.loc[~sumdf.variable.isin(['lel']), 'value'] = Scaler.transform(sumdf.loc[~df.variable.isin(['lel']), 'value'])
+
+sumdfScaled = pd.DataFrame(Scaler.transform((sumdf.values)))
+sumdfScaled.columns = 'sum_' + sumdf.columns
+sumdfScaled.index = sumdf.index.copy()
 
 # MEAN FOR MOOD, AROUSAL, VALENCE & ACTIVITY
 meandf = df[df.variable.isin(['mood', 'circumplex.arousal', 'circumplex.valence', 'activity'])].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
