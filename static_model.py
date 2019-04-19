@@ -14,12 +14,11 @@ TEST_P = 0.2
 
 # OLD
 # database = pd.read_pickle('database_basic_standardised.pkl')
-
 # NEW
-database_standard = pd.read_csv('database_basic_standardised.csv', index_col=0)
+database_standard = pd.read_pickle('../database_basic_stand')
 database_standard = database_standard.reset_index()
 database_standard = database_standard.set_index(['id', 'date'])
-database_norm = pd.read_csv('database_basic_normalisation.csv', index_col=0)
+database_norm = pd.read_pickle('../database_basic_norm.pkl')
 database_norm = database_norm.reset_index()
 database_norm = database_norm.set_index(['id', 'date'])
 # database.head()
@@ -30,15 +29,16 @@ database_norm = database_norm.set_index(['id', 'date'])
 # [Original row + History row of N]
 def add_history_of_N_days(database, N, method='mean'):
     history_data = []
+    database = database[database.columns[:-7]]
     for _, group in database.groupby(['id']):
         for row_id in range(group.shape[0]):
             if row_id > N: 
-                history = database.iloc[row_id-N:row_id, :]
+                history = group.iloc[row_id-N:row_id, :]
             elif row_id == 0:
                 # mean_history = database.iloc[0, :]
-                mean_history = np.zeros((1, database.shape[1]))
+                mean_history = np.zeros((1, group.shape[1]))
             else:
-                history = database.iloc[0:row_id, :]
+                history = group.iloc[0:row_id, :]
             if method == 'mean' and (row_id != 0):
                 mean_history = history.values.mean(axis=0)
             history_data.append(mean_history)
@@ -53,15 +53,19 @@ def do_tests(database):
     linr_results_test = []
     linr_error_valid = []
     linr_error_test = []
-    for i in range(0, 10):
+    for i in range(0, 30):
         if i != 0:
             history = add_history_of_N_days(database.iloc[:, :], i, method='mean')
             history = pd.DataFrame(history, dtype=float)
-            history.columns = 'history_' + database.columns
+            history.columns = 'history_' + database.columns[:-7]
             database_with_history = pd.concat([database.iloc[:, :].reset_index(), history], axis=1)
         else:
             database_with_history = database.reset_index()
         # database_with_history = database.reset_index()
+        
+        # if i == 4:
+        #     print(database_with_history[['id', 'date', 'history_target_mood', 'target_mood']])
+        #     return
         X_train = []
         X_valid = []
         X_test = []
@@ -180,16 +184,20 @@ for s1 in [svm_results_test_norm[0], svm_results_test_std[0], linr_results_test_
         print(stats.wilcoxon(s1, s2))
 
 
-plt.plot(svm_error_test_norm)
-plt.plot(svm_error_test_std)
-plt.plot(svm_error_valid_norm)
-plt.plot(svm_error_valid_std)
-plt.plot(linr_error_test_norm)
-plt.plot(linr_error_test_std)
-plt.plot(linr_error_valid_norm)
-plt.plot(linr_error_valid_std)
-plt.ylim([0, 30])
+plt.plot(svm_error_test_norm,'--', label='svm norm')
+# plt.plot(svm_error_test_std, '--', label='svm std')
+plt.plot(svm_error_valid_norm, label='svm norm')
+# plt.plot(svm_error_valid_std, label='svm std')
+plt.plot(linr_error_test_norm, '--', label='linr norm')
+# plt.plot(linr_error_test_std, '--', label='linr std')
+plt.plot(linr_error_valid_norm, label='linr norm')
+# plt.plot(linr_error_valid_std, label='linr std')
+plt.title('Normalised data')
+plt.legend()
+plt.show()
 
+
+print(svm_results_test_norm[0])
 #%%
 
 _, p1 = stats.wilcoxon(svm_y_valid_predict_corrected, lin_y_valid_predict_corrected)

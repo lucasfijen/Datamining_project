@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 import calendar
 
 norm = False
-stand = False
+stand = True
 if norm & stand:
     raise Exception("Can't use both standardisation and normalisation")
 
@@ -157,7 +157,13 @@ weekdaydf.index = final.index
 final[weekdaydf.columns] = weekdaydf
 
 #%%your preamble, so other people can try to compile your example. My guess is you need to load the booktabs package 
-final.to_pickle('../database_basic.pkl')
+if norm:
+    final.to_pickle('../database_basic_norm.pkl')
+elif stand:
+    final.to_pickle('../database_basic_stand')
+else:
+    final.to_pickle('../database_basic_basic')
+
 print('Saved in database_basic.pkl')
 final.to_csv('../database_basic.csv')
 #%%
