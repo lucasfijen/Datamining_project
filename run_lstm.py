@@ -8,6 +8,7 @@ import pandas as pd
 # from lstm_model import LSTM
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns; sns.set()
 
 class LSTM(nn.Module):
 
@@ -57,7 +58,10 @@ TRAIN_P = 0.6
 VALID_P = 0.2
 TEST_P = 0.2
 
-database = pd.read_pickle('database_basic.pkl')
+# database = pd.read_pickle('database_basic_old_normalisation.pkl')
+database = pd.read_csv('database_new_standardisation.csv', index_col=0)
+database = database.reset_index()
+database = database.set_index(['id', 'date'])
 database.head()
 
 X_train = []
@@ -66,6 +70,10 @@ X_test = []
 y_train = []
 y_valid = []
 y_test = []
+
+y_train_bool = []
+y_valid_bool = []
+y_test_bool = []
 
 train_lengths = []
 # length train + validation
@@ -77,6 +85,11 @@ for _, group in database.groupby(['id']):
 
     train_lengths.append(train_valid_split)
     valid_lengths.append(valid_test_split)
+
+    y_train_bool.append(1 - group.iloc[:train_valid_split]['shifted_target_mood_bool'].values.reshape(-1, 1))
+    y_valid_bool.append(1 - group.iloc[train_valid_split:valid_test_split]['shifted_target_mood_bool'].values.reshape(-1, 1))
+    y_test_bool.append(1 - group.iloc[valid_test_split:]['shifted_target_mood_bool'].values.reshape(-1, 1))
+
     y_train.append(group.iloc[:train_valid_split]['target_mood'].values)
     y_valid.append(group.iloc[train_valid_split:valid_test_split]['target_mood'].values)
     y_test.append(group.iloc[valid_test_split:]['target_mood'].values)
@@ -107,8 +120,10 @@ loss_fn = torch.nn.MSELoss()
 
 train_losses = []
 valid_losses = []
-for e in range(150):
+for e in range(25):
     for i, sequence in enumerate(X_train):
+        # if (i == 3) or (i == 5):
+        #     continue
         
         # print(e, i, '/', len(X_train))
         # print('length sequence:', sequence.shape[0])
@@ -119,10 +134,21 @@ for e in range(150):
         # print('length prediction sequence:', len(y_pred))
         # print(y_pred)
 
-        our_loss = ((y_pred.data.numpy() - y_train[i])**2).mean()
+        # print(y_pred.shape)
+        # print(y_train_bool[i].shape)
+        # exit()
+
+        y_train_predict_corrected = np.squeeze(y_pred.data.numpy()) * np.squeeze(y_train_bool[i])
+        y_train_corrected = np.squeeze(y_train[i]) * np.squeeze(y_train_bool[i])
+
+        train_nr_not_interpolated = np.count_nonzero(y_train_bool[i])
+
+        train_loss = ((y_train_predict_corrected - y_train_corrected)**2).sum() / train_nr_not_interpolated 
+        train_losses.append(train_loss)
+        
+        # our_loss = ((y_pred.data.numpy() - y_train[i])**2).mean()
         train_loss = loss_fn(y_pred, torch.from_numpy(y_train[i]).float())
 
-        train_losses.append(train_loss)
 
         # VALID
         valid_loss = 0
@@ -133,13 +159,20 @@ for e in range(150):
             
             # CUT OFF PREDICTION PART THAT WAS ALREADY IN TRAIN
             y_pred = y_pred[train_lengths[j]:]
-            
-            our_loss = ((y_pred.data.numpy() - y_valid[j])**2).mean() 
+
+            y_valid_predict_corrected = np.squeeze(y_pred.data.numpy()) * np.squeeze(y_valid_bool[j])
+            y_valid_corrected = np.squeeze(y_valid[j]) * np.squeeze(y_valid_bool[j])
+        
+            valid_nr_not_interpolated = np.count_nonzero(y_valid_bool[j])
+
+            our_loss = ((y_valid_predict_corrected - y_valid_corrected)**2).sum() / valid_nr_not_interpolated 
+            # print(our_loss)
             valid_loss += our_loss 
         valid_losses.append(valid_loss/len(X_valid))
 
         # print('our loss', our_loss)
-        # print('MSEloss:', loss.item())
+        
+        # print('MSEloss:', train_loss.item())
         # Zero out gradient, else they will accumulate between epochs
         optimiser.zero_grad()
 
@@ -149,14 +182,16 @@ for e in range(150):
         # Update parameters
         optimiser.step()
     
-    if (e % 25) == 0:
+    if (e % 25) == 0 or (e == 24):
         print('Epoch:', e)
         print('train loss:', train_loss.item())
         print('valid loss:', valid_loss/len(X_valid))
+#%%
 
 plt.plot(train_losses, label='train')
 plt.plot(valid_losses, label='valid')
 plt.title('Loss')
+plt.savefig('LSTM_26_epochs_30_hidden.png', dpi=200, facecolor='w')
 plt.legend()
 plt.show()
 
@@ -164,25 +199,17 @@ plt.show()
 total_loss = 0
 for i in range(len(X_test)):
     input = torch.from_numpy(X_test[i]).float()
-    # print(input.shape)
     pred = lstm_model(input)
     
     # CUT OFF PREDICTION PART THAT WAS ALREADY IN TRAIN
     y_pred = pred.data.numpy()
-    # print(len(y_pred))
-    # print(len(y_test[i]))
-    # print(valid_lengths[i])
     y_pred = y_pred[valid_lengths[i]:]
 
-    total_loss += ((y_pred - y_test[i])**2).mean()
+    # CORRECT FOR INTERPOLATION
+    y_test_predict_corrected = np.squeeze(y_pred) * np.squeeze(y_test_bool[i])
+    y_test_corrected = np.squeeze(y_test[i]) * np.squeeze(y_test_bool[i])
+
+    test_nr_not_interpolated = np.count_nonzero(y_test_bool[i])
+    total_loss += ((y_test_predict_corrected - y_test_corrected)**2).sum() / test_nr_not_interpolated 
 
 print('total test loss', total_loss.item()/len(X_test))
-
-# total_loss = 0
-# for i in range(len(X_valid)):
-#     input = torch.from_numpy(X_valid[i]).float()
-#     pred = lstm_model(input)
-#     total_loss += loss_fn(pred, torch.from_numpy(y_valid[i]).float())
-# print('total validation loss', total_loss.item()/len(X_valid))
-
-#%%
