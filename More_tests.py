@@ -90,6 +90,9 @@ mse_valid = ((X_valid - y_valid)**4).sum() / valid_n
 mse_test = ((X_test - y_test)**4).sum() / test_n
 mse_all = ((X_all - y_all)**4).sum() / all_n
 
+print('standardised')
+print(list(X_test))
+
 print('mse_train', mse_train)
 print('mse_valid', mse_valid)
 print('mse_test', mse_test)
