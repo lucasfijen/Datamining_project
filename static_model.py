@@ -29,6 +29,7 @@ def add_history_of_N_days(database, N, method='mean'):
             if row_id > N: 
                 history = database.iloc[row_id-N:row_id, :]
             elif row_id == 0:
+                # mean_history = database.iloc[0, :]
                 mean_history = np.zeros((1, database.shape[1]))
             else:
                 history = database.iloc[0:row_id, :]
@@ -42,6 +43,26 @@ history = pd.DataFrame(history, dtype=float)
 history.columns = 'history_' + database.columns
 database_with_history = pd.concat([database.iloc[:, :].reset_index(), history], axis=1)
 
+# cols = [c for c in database_with_history.columns if ('bool' not in c) and ('target' not in c) and ('date' not in c) and ('id' not in c)]
+# df_cor = database_with_history[cols].corr()
+# # print(df_cor)
+# # df_cor = df.corr()
+# # pd.DataFrame(np.linalg.inv(df_cor.values), index = df_cor.index, columns=df_cor.columns)
+# print(pd.Series(np.linalg.inv(df_cor.values).diagonal(), index=df_cor.index).round(2))
+
+# database_with_history = history.reset_index()
+# database_with_history.head()
+# cols = [c for c in database_with_history.columns if (('history' in c) or ('id' in c) or ('date' in c) or ('target_mood' in c))]
+# database_with_history = database_with_history[cols]
+# database_with_history.head()
+
+# database_with_history = database_with_history[cols]
+# database_with_history = database_with_history.reset_index()
+# database_with_history.head()
+
+#%%
+
+# database_with_history = database.reset_index()
 X_train = []
 X_valid = []
 X_test = []
@@ -92,17 +113,17 @@ clf.fit(X_train, y_train)
 y_valid_predict = clf.predict(X_valid)
 y_test_predict = clf.predict(X_test)
 
-y_valid_predict_corrected = y_valid_predict * y_valid_bool
-y_test_predict_corrected = y_test_predict * y_test_bool
+svm_y_valid_predict_corrected = y_valid_predict * y_valid_bool
+svm_y_test_predict_corrected = y_test_predict * y_test_bool
 y_valid_corrected = y_valid * y_valid_bool
 y_test_corrected = y_test * y_test_bool 
 
 valid_nr_not_interpolated = np.count_nonzero(y_valid_bool)
 test_nr_not_interpolated = np.count_nonzero(y_test_bool)
 
-mse_valid = (((y_valid_predict_corrected - y_valid_corrected)**2).sum()) / valid_nr_not_interpolated
+mse_valid = (((svm_y_valid_predict_corrected - y_valid_corrected)**4).sum()) / valid_nr_not_interpolated
 print('SVM valid', mse_valid)
-mse_test = (((y_test_predict_corrected - y_test_corrected)**2).sum()) / test_nr_not_interpolated
+mse_test = (((svm_y_test_predict_corrected - y_test_corrected)**4).sum()) / test_nr_not_interpolated
 print('SVM test', mse_test)
 
 #%% FIT LINEAR REGRESSION
@@ -113,17 +134,38 @@ reg = LinearRegression().fit(X_train, y_train)
 y_valid_predict = reg.predict(X_valid)
 y_test_predict = reg.predict(X_test)
 
-y_valid_predict_corrected = y_valid_predict * y_valid_bool
-y_test_predict_corrected = y_test_predict * y_test_bool
+lin_y_valid_predict_corrected = y_valid_predict * y_valid_bool
+lin_y_test_predict_corrected = y_test_predict * y_test_bool
 y_valid_corrected = y_valid * y_valid_bool
 y_test_corrected = y_test * y_test_bool 
 
 valid_nr_not_interpolated = np.count_nonzero(y_valid_bool)
 test_nr_not_interpolated = np.count_nonzero(y_test_bool)
 
-mse_valid = (((y_valid_predict_corrected - y_valid_corrected)**2).sum()) / valid_nr_not_interpolated
+mse_valid = (((lin_y_valid_predict_corrected - y_valid_corrected)**4).sum()) / valid_nr_not_interpolated
 print('LinReg valid', mse_valid)
-mse_test = (((y_test_predict_corrected - y_test_corrected)**2).sum()) / test_nr_not_interpolated
+mse_test = (((lin_y_test_predict_corrected - y_test_corrected)**4).sum()) / test_nr_not_interpolated
 print('LinReg test', mse_test)
+
+#%%
+print('svm_y_valid_predict_corrected', svm_y_valid_predict_corrected)
+print('svm_y_test_predict_corrected', svm_y_test_predict_corrected)
+print('lin_y_valid_predict_corrected', lin_y_valid_predict_corrected)
+print('lin_y_test_predict_corrected', lin_y_test_predict_corrected)
+
+#%%
+from scipy import stats
+
+_, p1 = stats.wilcoxon(svm_y_valid_predict_corrected, lin_y_valid_predict_corrected)
+_, p2 = stats.wilcoxon(svm_y_test_predict_corrected, lin_y_test_predict_corrected)
+
+alpha = 0.05
+
+print(p1, p2)
+
+# if p1 < alpha:  # null hypothesis: x comes from a normal distribution
+#     print("The null hypothesis can be rejected")
+# else:
+#     print("The null hypothesis cannot be rejected")
 
 #%%

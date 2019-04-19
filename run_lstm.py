@@ -118,6 +118,11 @@ lstm_model.hidden = lstm_model.init_hidden()
 optimiser = torch.optim.Adam(lstm_model.parameters(), lr=learning_rate)
 loss_fn = torch.nn.MSELoss()
 
+def MSE_4(input, target):
+    return torch.sum((input-target) ** 4) / input.shape[0]
+
+# loss_fn = MSE_4
+
 train_losses = []
 valid_losses = []
 for e in range(25):
@@ -147,8 +152,7 @@ for e in range(25):
         train_losses.append(train_loss)
         
         # our_loss = ((y_pred.data.numpy() - y_train[i])**2).mean()
-        train_loss = loss_fn(y_pred, torch.from_numpy(y_train[i]).float())
-
+        train_loss = MSE_4(y_pred, torch.from_numpy(y_train[i]).float())
 
         # VALID
         valid_loss = 0

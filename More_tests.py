@@ -76,10 +76,10 @@ print(X_train.shape, X_valid.shape, X_test.shape)
 X_all = np.squeeze(np.concatenate([X_train, X_valid, X_test])) * np.squeeze(y_bool_all)
 y_all = np.squeeze(np.concatenate([y_train, y_valid, y_test])) * np.squeeze(y_bool_all)
 
-mse_train = ((X_train - y_train)**2).sum() / train_n
-mse_valid = ((X_valid - y_valid)**2).sum() / valid_n
-mse_test = ((X_test - y_test)**2).sum() / test_n
-mse_all = ((X_all - y_all)**2).sum() / all_n
+mse_train = ((X_train - y_train)**4).sum() / train_n
+mse_valid = ((X_valid - y_valid)**4).sum() / valid_n
+mse_test = ((X_test - y_test)**4).sum() / test_n
+mse_all = ((X_all - y_all)**4).sum() / all_n
 
 print('mse_train', mse_train)
 print('mse_valid', mse_valid)
