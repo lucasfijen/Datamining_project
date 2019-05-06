@@ -42,15 +42,18 @@ plt.xlabel('Length of the result page (number of properties)')
 plt.ylabel('Percentage of searches')
 plt.show()
 
-#%%
+#%% Per user search 1 or 0 hotels are booked (never more)
+print(np.unique(booked))
 plt.bar([0, 1], [len(booked) - np.count_nonzero(booked), np.count_nonzero(booked)])
 plt.show()
 
-#%%
-plt.bar([0, 1], [len(clicked) - np.count_nonzero(clicked), np.count_nonzero(clicked)])
+#%% 
+print('Per user search :', np.unique(clicked), 'nr of times clicked, so never 0!')
+# plt.bar([0, 1], [len(clicked) - np.count_nonzero(clicked), np.count_nonzero(clicked)])
+plt.hist(clicked, density=True)
 plt.show()
 
-#%%
+#%% BOOKED = CLICKED it seems (which makes sense)
 labels = ['booked', 'clicked', 'clicked_and_booked']
 plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
