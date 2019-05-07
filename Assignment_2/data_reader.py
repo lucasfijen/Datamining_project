@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 sns.set_palette("Paired")
 
 #%% Reading in db
-df = pd.read_csv('data/training_set_VU_DM.csv')
-
+try:
+    df = pd.read_csv('data/training_set_VU_DM.csv')
+except:
+    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 #%% Basis featurs of the dataset
 print('Number of properties:', df.shape[0], 'Number of initial features:', df.shape[1])
 print('The features:', df.columns.values)
@@ -17,6 +19,11 @@ smalldf = df.head(10000)
 
 #%% The number of times a property occurs in the dataset
 df.prop_id.value_counts()
+
+#%% The amount of countries is 172
+df.prop_country_id.value_counts()
+
+#%% 
 
 #%%
 # One srch_id corresponds to one result page of a search and
