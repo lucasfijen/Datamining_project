@@ -11,7 +11,7 @@ try:
 except:
     df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 #%% Basis featurs of the dataset
-print('Number of properties:', df.shape[0], 'Number of initial features:', df.shape[1])
+print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1])
 print('The features:', df.columns.values)
 
 #%% Take a small subset because the dataset is BIG
@@ -66,7 +66,10 @@ plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
 plt.show()
 
-#%% WORK IN PROCES
+#%% 
+
+
+#%% WORK IN PROGRESS
 def NDCG(ranking_df):
     '''
     This function expects a ranking_df, which is a Dataframe 
