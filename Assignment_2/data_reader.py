@@ -11,9 +11,37 @@ try:
 except:
     df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 #%% Basis featurs of the dataset
-print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1])
+print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1], '\n')
 print('The features:', df.columns.values)
 
+#%%
+random = df[df['random_bool'] == 1]
+non_random = df[df['random_bool'] == 0]
+
+random_clicks = random.groupby('position')['click_bool'].mean()
+random_bookings = random.groupby('position')['booking_bool'].mean()
+random_ = pd.concat([random_clicks.rename('clicks'), random_bookings.rename('bookings')], axis=1)
+
+nonrandom_clicks = non_random.groupby('position')['click_bool'].mean()
+nonrandom_bookings = non_random.groupby('position')['booking_bool'].mean()
+nonrandom_ = pd.concat([nonrandom_clicks.rename('clicks'), nonrandom_bookings.rename('bookings')], axis=1)
+
+#%%
+random_nonrandom_clicks = nonrandom_clicks - random_clicks
+random_nonrandom_clicks.plot.bar()
+
+#%%
+random_nonrandom_bookings = nonrandom_bookings - random_bookings
+random_nonrandom_bookings.plot.bar()
+#%%
+random_plot = random_.plot.bar(width=1, figsize=[14, 8], title='Random positioning')
+random_fig = random_plot.get_figure()
+random_fig.savefig('random_position.png', dpi=200, facecolor='white')
+
+#%%
+nonrandom_fig = nonrandom_plot.get_figure()
+nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
+nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
 #%% Take a small subset because the dataset is BIG
 smalldf = df.head(10000)
 
