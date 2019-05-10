@@ -32,7 +32,26 @@ nonrandom_ = pd.concat([nonrandom_clicks.rename('clicks'), nonrandom_bookings.re
 clicks_correction = random_clicks / nonrandom_clicks
 bookings_correction = random_bookings / nonrandom_bookings
 correction_df = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non_random_clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('nonrandom bookings'), clicks_correction.rename('random/nonrandom clicks'), bookings_correction.rename('random/nonrandom bookings')], axis=1)
+correction_df.reset_index(inplace=True)
 correction_df.to_csv('position_bias_correction_df.csv')
+
+#%%
+# smalldf = df.head(10000)
+def correct_click(row):
+    position = row['position']
+    correction = correction_df[correction_df['position'] == position]['random/nonrandom clicks'].values[0]  
+    return row['click_bool'] * correction
+
+def correct_booking(row):
+    position = row['position']
+    correction = correction_df[correction_df['position'] == position]['random/nonrandom bookings'].values[0]  
+    return row['booking_bool'] * 5 * correction
+
+df['corrected_click_gain'] = df.apply(correct_click, axis=1)
+df['corrected_book_gain'] = df.apply(correct_booking, axis=1)
+df['corrected_total'] = df['corrected_click_gain'] + df['corrected_book_gain']
+
+df['non_corrected_total'] = df['click_bool'] + (5 * df['booking_bool'])
 
 #%% PLOT RANDOM VERSUS NON-RANDOM FRACTION OF CLICKS & BOOKINGS PER POSITION
 all = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non random clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('non random_bookings')], axis=1)
