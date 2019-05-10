@@ -4,6 +4,8 @@ import numpy as np
 import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
 sns.set_palette("Paired")
+from matplotlib import rcParams
+rcParams['font.family'] = 'serif'
 
 #%% Reading in db
 try:
@@ -27,28 +29,40 @@ nonrandom_bookings = non_random.groupby('position')['booking_bool'].mean()
 nonrandom_ = pd.concat([nonrandom_clicks.rename('clicks'), nonrandom_bookings.rename('bookings')], axis=1)
 
 #%%
-random_nonrandom_clicks = nonrandom_clicks - random_clicks
-random_nonrandom_clicks.plot.bar()
+clicks_correction = random_clicks / nonrandom_clicks
+bookings_correction = random_bookings / nonrandom_bookings
+correction_df = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non_random_clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('nonrandom bookings'), clicks_correction.rename('random/nonrandom clicks'), bookings_correction.rename('random/nonrandom bookings')], axis=1)
+correction_df.to_csv('position_bias_correction_df.csv')
 
+#%% PLOT RANDOM VERSUS NON-RANDOM FRACTION OF CLICKS & BOOKINGS PER POSITION
+all = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non random clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('non random_bookings')], axis=1)
+all_plot = all.plot.bar(figsize=[14, 10], width=1, color=sns.color_palette("Paired")[:4], linewidth=0)
+all_plot.set_ylabel('fraction', fontsize=14)
+all_plot.set_xlabel('position', fontsize=14)
+all_plot.set_title('Fraction of clicks and bookings at positions of the result page', fontsize=20)
+all_fig = all_plot.get_figure()
+all_fig.savefig('random_vs_nonrandom.png', dpi=200, facecolor='white')
 #%%
-random_nonrandom_bookings = nonrandom_bookings - random_bookings
-random_nonrandom_bookings.plot.bar()
+# random_nonrandom_bookings = nonrandom_bookings - random_bookings
+# random_nonrandom_bookings.plot.bar(color='skyblue')
 #%%
-random_plot = random_.plot.bar(width=1, figsize=[14, 8], title='Random positioning')
-random_fig = random_plot.get_figure()
-random_fig.savefig('random_position.png', dpi=200, facecolor='white')
-
+# random_nonrandom_clicks = nonrandom_clicks - random_clicks
+# random_nonrandom_clicks.plot.bar(color='skyblue')
 #%%
-nonrandom_fig = nonrandom_plot.get_figure()
-nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
-nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
+# random_plot = random_.plot.bar(width=1, figsize=[14, 8], title='Random positioning')
+# random_fig = random_plot.get_figure()
+# random_fig.savefig('random_position.png', dpi=200, facecolor='white')
+#%%
+# nonrandom_fig = nonrandom_plot.get_figure()
+# nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
+# nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
 #%% Take a small subset because the dataset is BIG
 smalldf = df.head(10000)
 
 #%% The number of times a property occurs in the dataset
 df.prop_id.value_counts()
 
-#%% The amount of countries is 172
+#%% The number of countries is 172
 df.prop_country_id.value_counts()
 
 #%% 
@@ -93,20 +107,3 @@ labels = ['booked', 'clicked', 'clicked_and_booked']
 plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
 plt.show()
-
-#%% 
-
-
-#%% WORK IN PROGRESS
-def NDCG(ranking_df):
-    '''
-    This function expects a ranking_df, which is a Dataframe 
-    containing the following columns and corresponding 1 search_id:
-    prop_id, predicted_val,  click_bool, booking_bool
-    '''
-    count_booked = 1
-    count_clicked = 6
-    count_nothing = 5
-    total_length = count_booked + count_clicked + count_nothing
-    for i in range(total_length)
-    ideal_dcg = for i in range(count_booked
