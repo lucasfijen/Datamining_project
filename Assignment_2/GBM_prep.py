@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error
 sns.set_palette("Paired")
 
 #%% Reading in db NOT ALL OF IT, JUST 1000 rows for testing
@@ -43,6 +45,9 @@ print('The datatypes:', df.dtypes)
 df = pd.get_dummies(df, columns=['site_id', 'visitor_location_country_id', 'prop_country_id', 'prop_id', 'srch_destination_id', 'target_month'], \
                     prefix=['site_id', 'visitor_location_country_id', 'prop_country_id', 'prop_id', 'srch_destination_id', 'target_month'])
 
+#%% NaN fill
+df.isnull().sum()
+df = df.fillna(0)
 #%%
 y = df['corrected_position'].values
 df = df.drop('corrected_position', axis=1)
@@ -52,5 +57,40 @@ X = df.values
 print(X.shape)
 print(y.shape)
 
+
+#%%
+GBR = GradientBoostingRegressor()
+GBR.fit(X[0:900],y[0:900])
+
+# returns 100 most important features for ever
+# ft_importances = GBR.feature_importances_
+# print(np.shape(ft_importances))
+
+# # get 
+# ft_importances = np.mean(ft_importances, axis = 0)
+
+# ft_importances = 100.0 * (ft_importances / ft_importances.max())
+# sorted_idx = np.argsort(ft_importances)
+# ft_bars = (ft_importances[sorted_idx[-31:-1]])
+# pos = np.arange(30) + .5
+# plt.bar(pos, ft_bars)
+# plt.show()
+
+
+# ft_importances =np.expand_dims(ft_importances[sorted_idx], axis=1)
+# plt.barh(pos, ft_importances[sorted_idx[-31:-1]])
+features = list(df)
+feature_importance = GBR.feature_importances_
+# make importances relative to max importance
+feature_importance = 100.0 * (feature_importance / feature_importance.max())
+sorted_idx = np.argsort(feature_importance)
+pos = np.arange(sorted_idx.shape[0]) + .5
+plt.barh(pos, feature_importance[sorted_idx], align='center')
+# plt.yticks(pos, features[sorted_idx]) 
+plt.xlabel('Relative Importance')
+plt.title('Variable Importance')
+plt.show()
+
+#%%
 
 #%%
