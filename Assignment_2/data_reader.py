@@ -29,7 +29,7 @@ df['corrected_position'] = df.corrected_position / df.groupby('srch_id').correct
 #%% ONE-HOT
 # pd.get_dummies(df, prefix=['col1', 'col2'])
 
-#%%
+#%% Position bias relative chance of positions beeing clicked calculated
 random = df[df['random_bool'] == 1]
 non_random = df[df['random_bool'] == 0]
 
@@ -41,7 +41,7 @@ nonrandom_clicks = non_random.groupby('position')['click_bool'].mean()
 nonrandom_bookings = non_random.groupby('position')['booking_bool'].mean()
 nonrandom_ = pd.concat([nonrandom_clicks.rename('clicks'), nonrandom_bookings.rename('bookings')], axis=1)
 
-#%%
+#%% Calculate the relative chances of a click being performed due to click bias
 clicks_correction = random_clicks / nonrandom_clicks
 bookings_correction = random_bookings / nonrandom_bookings
 correction_df = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non_random_clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('nonrandom bookings'), clicks_correction.rename('random/nonrandom clicks'), bookings_correction.rename('random/nonrandom bookings')], axis=1)
@@ -76,32 +76,13 @@ all_plot.set_xlabel('position', fontsize=14)
 all_plot.set_title('Fraction of clicks and bookings at positions of the result page', fontsize=20)
 all_fig = all_plot.get_figure()
 all_fig.savefig('random_vs_nonrandom.png', dpi=200, facecolor='white')
-#%%
-# random_nonrandom_bookings = nonrandom_bookings - random_bookings
-# random_nonrandom_bookings.plot.bar(color='skyblue')
-#%%
-# random_nonrandom_clicks = nonrandom_clicks - random_clicks
-# random_nonrandom_clicks.plot.bar(color='skyblue')
+
 #%%
 # random_plot = random_.plot.bar(width=1, figsize=[14, 8], title='Random positioning')
 # random_fig = random_plot.get_figure()
 # random_fig.savefig('random_position.png', dpi=200, facecolor='white')
 #%%
-# nonrandom_fig = nonrandom_plot.get_figure()
-# nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
-# nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
-#%% Take a small subset because the dataset is BIG
-smalldf = df.head(10000)
 
-#%% The number of times a property occurs in the dataset
-df.prop_id.value_counts()
-
-#%% The number of countries is 172
-df.prop_country_id.value_counts()
-
-#%% 
-
-#%%
 # One srch_id corresponds to one result page of a search and
 # the variable that is to be predicted is the booking_bool (and click_bool?)
 
@@ -141,3 +122,69 @@ labels = ['booked', 'clicked', 'clicked_and_booked']
 plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
 plt.show()
+
+#%% Determine number of destination_ids per prop_id
+prop_id_srch_dest = []
+prop_dest_dict = dict()
+# prop_dest_count = dict({key: 0 for key in np.unique(smalldf['prop_id'].values)})     # len(np.unique(smalldf['prop_id'].values))
+prop_in_search_count = dict({key: 0 for key in np.unique(df['prop_id'].values)})
+
+#Iterate over searches
+for search_id in np.unique(df['srch_id'].values):
+    search_items = df[(df['srch_id'] == search_id)]
+    dest_id = np.unique(search_items['srch_destination_id'])
+    prop_ids = search_items['prop_id']
+    #iterate over properties in search
+    for prop_id in prop_ids:
+        prop_in_search_count[prop_id] += 1
+        # add destination to value string if prop in dict
+        if prop_id in prop_dest_dict:
+            if str(dest_id) not in str(prop_dest_dict[prop_id]):
+                prop_dest_dict[prop_id] = str(prop_dest_dict[prop_id]) + "," + str(dest_id)
+        
+        # else, create new prop key with destination value
+        else:
+            prop_dest_dict[prop_id] = str(dest_id) 
+
+
+#%%
+prop_dest_count = []
+prop_dest_count_normalized = []
+for prop_id in np.unique(df['prop_id'].values):
+    # bracket in value str signals dest_id, count brackets, such innovative
+    amount_of_dests = prop_dest_dict[prop_id].count('[')
+    amount_appearances_in_search = prop_in_search_count[prop_id]
+    prop_dest_count.append((amount_of_dests))
+    prop_dest_count_normalized.append(amount_of_dests/amount_appearances_in_search)
+
+
+# bar plot of amount of different dest id per prop
+plt.hist(prop_dest_count, bins =50)
+plt.xlabel('amount of associated destinations IDs for one property')
+plt.ylabel('amount of properties')
+plt.savefig("dest_ids_prop")
+plt.show()
+# bar plot of amount of different dest id per prop normalized
+plt.hist(prop_dest_count_normalized, bins =5)
+plt.xlabel('amount of associated destinations IDs for one property normalized by amount of search appearances')
+plt.ylabel('amount of properties')
+plt.savefig("(dest_ids_prop)_normalized")
+plt.show()
+#%% WORK IN PROGRESS
+def NDCG(ranking_df):
+    '''
+    This function expects a ranking_df, which is a Dataframe 
+    containing the following columns and corresponding 1 search_id:
+    prop_id, predicted_val,  click_bool, booking_bool
+    '''
+    count_booked = 1
+    count_clicked = 6
+    count_nothing = 5
+    total_length = count_booked + count_clicked + count_nothing
+    for i in range(total_length)
+    ideal_dcg = for i in range(count_booked
+
+# nonrandom_fig = nonrandom_plot.get_figure()
+# nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
+# nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
+
