@@ -4,8 +4,6 @@ import numpy as np
 import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
 sns.set_palette("Paired")
-from matplotlib import rcParams
-rcParams['font.family'] = 'serif'
 
 #%% Reading in db
 try:
@@ -16,7 +14,7 @@ except:
 print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1], '\n')
 print('The features:', df.columns.values)
 
-#%% Position bias relative chance of positions beeing clicked calculated
+#%%
 random = df[df['random_bool'] == 1]
 non_random = df[df['random_bool'] == 0]
 
@@ -28,41 +26,34 @@ nonrandom_clicks = non_random.groupby('position')['click_bool'].mean()
 nonrandom_bookings = non_random.groupby('position')['booking_bool'].mean()
 nonrandom_ = pd.concat([nonrandom_clicks.rename('clicks'), nonrandom_bookings.rename('bookings')], axis=1)
 
-#%% Calculate the relative chances of a click being performed due to click bias
-clicks_correction = random_clicks / nonrandom_clicks
-bookings_correction = random_bookings / nonrandom_bookings
-correction_df = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non_random_clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('nonrandom bookings'), clicks_correction.rename('random/nonrandom clicks'), bookings_correction.rename('random/nonrandom bookings')], axis=1)
-correction_df.reset_index(inplace=True)
-correction_df.to_csv('position_bias_correction_df.csv')
-
-#%% Perform merge to other dataframe
-temp_df = correction_df[['position', 'random/nonrandom clicks', 'random/nonrandom bookings']]
-newdf = df.merge(temp_df, on='position')
-print(newdf.head(20))
-#%% add the scorings and compensated scorings based on click bias
-newdf['corrected_click_gain'] = newdf.click_bool * (1 - newdf['random/nonrandom clicks'])
-newdf['corrected_book_gain'] = newdf.booking_bool * (1 - newdf['random/nonrandom bookings']) * 5
-newdf['corrected_total'] = newdf['corrected_click_gain'] + newdf['corrected_book_gain']
-newdf['non_corrected_total'] = newdf['click_bool'] + (5 * newdf['booking_bool'])
-print(newdf[(newdf.booking_bool == 1) & (newdf.position ==1) & (newdf.click_bool ==1)]['non_corrected_total'])
-print(df.shape)
-print(newdf.shape)
-
-#%% PLOT RANDOM VERSUS NON-RANDOM FRACTION OF CLICKS & BOOKINGS PER POSITION
-all = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non random clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('non random_bookings')], axis=1)
-all_plot = all.plot.bar(figsize=[14, 10], width=1, color=sns.color_palette("Paired")[:4], linewidth=0)
-all_plot.set_ylabel('fraction', fontsize=14)
-all_plot.set_xlabel('position', fontsize=14)
-all_plot.set_title('Fraction of clicks and bookings at positions of the result page', fontsize=20)
-all_fig = all_plot.get_figure()
-all_fig.savefig('random_vs_nonrandom.png', dpi=200, facecolor='white')
+#%%
+random_nonrandom_clicks = nonrandom_clicks - random_clicks
+random_nonrandom_clicks.plot.bar()
 
 #%%
-# random_plot = random_.plot.bar(width=1, figsize=[14, 8], title='Random positioning')
-# random_fig = random_plot.get_figure()
-# random_fig.savefig('random_position.png', dpi=200, facecolor='white')
+random_nonrandom_bookings = nonrandom_bookings - random_bookings
+random_nonrandom_bookings.plot.bar()
 #%%
+random_plot = random_.plot.bar(width=1, figsize=[14, 8], title='Random positioning')
+random_fig = random_plot.get_figure()
+random_fig.savefig('random_position.png', dpi=200, facecolor='white')
 
+#%%
+nonrandom_fig = nonrandom_plot.get_figure()
+nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
+nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
+#%% Take a small subset because the dataset is BIG
+smalldf = df.head(10000)
+
+#%% The number of times a property occurs in the dataset
+df.prop_id.value_counts()
+
+#%% The amount of countries is 172
+df.prop_country_id.value_counts()
+
+#%% 
+
+#%%
 # One srch_id corresponds to one result page of a search and
 # the variable that is to be predicted is the booking_bool (and click_bool?)
 
@@ -103,9 +94,10 @@ plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
 plt.show()
 
-#%% Determine number of destination_ids per prop_id WARNING takes a while
+#%% Determine number of destination_ids per prop_id
 prop_id_srch_dest = []
 prop_dest_dict = dict()
+# prop_dest_count = dict({key: 0 for key in np.unique(smalldf['prop_id'].values)})     # len(np.unique(smalldf['prop_id'].values))
 prop_in_search_count = dict({key: 0 for key in np.unique(df['prop_id'].values)})
 
 #Iterate over searches
@@ -126,7 +118,7 @@ for search_id in np.unique(df['srch_id'].values):
             prop_dest_dict[prop_id] = str(dest_id) 
 
 
-#%% plot some dest_id prop_id data
+#%%
 prop_dest_count = []
 prop_dest_count_normalized = []
 for prop_id in np.unique(df['prop_id'].values):
@@ -161,8 +153,3 @@ def NDCG(ranking_df):
     total_length = count_booked + count_clicked + count_nothing
     for i in range(total_length)
     ideal_dcg = for i in range(count_booked
-
-# nonrandom_fig = nonrandom_plot.get_figure()
-# nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
-# nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
-
