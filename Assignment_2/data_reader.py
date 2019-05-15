@@ -94,9 +94,52 @@ plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
 plt.show()
 
-#%% 
+#%% Determine number of destination_ids per prop_id
+prop_id_srch_dest = []
+prop_dest_dict = dict()
+# prop_dest_count = dict({key: 0 for key in np.unique(smalldf['prop_id'].values)})     # len(np.unique(smalldf['prop_id'].values))
+prop_in_search_count = dict({key: 0 for key in np.unique(df['prop_id'].values)})
+
+#Iterate over searches
+for search_id in np.unique(df['srch_id'].values):
+    search_items = df[(df['srch_id'] == search_id)]
+    dest_id = np.unique(search_items['srch_destination_id'])
+    prop_ids = search_items['prop_id']
+    #iterate over properties in search
+    for prop_id in prop_ids:
+        prop_in_search_count[prop_id] += 1
+        # add destination to value string if prop in dict
+        if prop_id in prop_dest_dict:
+            if str(dest_id) not in str(prop_dest_dict[prop_id]):
+                prop_dest_dict[prop_id] = str(prop_dest_dict[prop_id]) + "," + str(dest_id)
+        
+        # else, create new prop key with destination value
+        else:
+            prop_dest_dict[prop_id] = str(dest_id) 
 
 
+#%%
+prop_dest_count = []
+prop_dest_count_normalized = []
+for prop_id in np.unique(df['prop_id'].values):
+    # bracket signals prop, count brackets, such innovative
+    amount_of_dests = prop_dest_dict[prop_id].values().count('[')
+    amount_appearances_in_search = prop_in_search_count[prop_id].values()
+    prop_dest_count.append(())
+
+prop_dest_count_normalized.append(amount_of_dests/amount_appearances_in_search)
+
+
+
+# bar plot of amount of different dest id per prop
+plt.hist(prop_dest_count, bins =50)
+plt.xlabel('amount of associated destinations IDs for one property')
+plt.ylabel('amount of properties')
+plt.show()
+plt.hist(prop_dest_count_normalized, bins =50)
+plt.xlabel('amount of associated destinations IDs for one property normalized by amount of search appearances')
+plt.ylabel('amount of properties')
+plt.show()
 #%% WORK IN PROGRESS
 def NDCG(ranking_df):
     '''
