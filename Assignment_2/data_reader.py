@@ -12,9 +12,22 @@ try:
     df = pd.read_csv('data/training_set_VU_DM.csv')
 except:
     df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
+
 #%% Basis featurs of the dataset
 print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1], '\n')
-print('The features:', df.columns.values)
+# print('The features:', df.columns.values)
+print('The datatypes:', df.dtypes)
+# df.head()
+
+#%% Make a new column which is the position divided by the max position
+# of that srch_id. Also, first close the missing positions.
+
+df = df.sort_values(['srch_id', 'position'])
+df['corrected_position'] = df.groupby(['srch_id']).cumcount()+1
+df['corrected_position'] = df.corrected_position / df.groupby('srch_id').corrected_position.transform(np.max) 
+
+#%% ONE-HOT
+# pd.get_dummies(df, prefix=['col1', 'col2'])
 
 #%%
 random = df[df['random_bool'] == 1]
@@ -34,6 +47,8 @@ bookings_correction = random_bookings / nonrandom_bookings
 correction_df = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non_random_clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('nonrandom bookings'), clicks_correction.rename('random/nonrandom clicks'), bookings_correction.rename('random/nonrandom bookings')], axis=1)
 correction_df.reset_index(inplace=True)
 correction_df.to_csv('position_bias_correction_df.csv')
+
+correction_df
 
 #%%
 # smalldf = df.head(10000)
