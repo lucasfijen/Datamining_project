@@ -19,15 +19,17 @@ print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.sh
 print('The datatypes:', df.dtypes)
 # df.head()
 
+#%% Calculate the month for which people are looking
+df['date_time'] = pd.to_datetime(df['date_time'])
+df['target_month'] = (df['date_time'] + df['srch_booking_window'].astype('timedelta64[D]')).dt.month
+
+
 #%% Make a new column which is the position divided by the max position
 # of that srch_id. Also, first close the missing positions.
 
 df = df.sort_values(['srch_id', 'position'])
 df['corrected_position'] = df.groupby(['srch_id']).cumcount()+1
 df['corrected_position'] = df.corrected_position / df.groupby('srch_id').corrected_position.transform(np.max) 
-
-#%% ONE-HOT
-# pd.get_dummies(df, prefix=['col1', 'col2'])
 
 #%% Position bias relative chance of positions beeing clicked calculated
 random = df[df['random_bool'] == 1]
