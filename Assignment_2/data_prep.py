@@ -25,34 +25,34 @@ def split_dataset(df):
     selection = unique_srch_ids[:int(unique_srch_ids.size * 0.8)]
     msk = df.srch_id.isin(selection)
     training = df[msk]
-    test = df[~msk]
-    return training, test
-trainingset, testset = split_dataset(df)
+    val = df[~msk]
+    return training, val
+trainingset, valset = split_dataset(df)
 
 #%% Print some stats
 print('split devision')
-print(len(trainingset) / (len(trainingset) + len(testset)))
+print(len(trainingset) / (len(trainingset) + len(valset)))
 print('')
 print('Devision random - not random')
 print('training')
-print(testset.random_bool.value_counts())
-print('test')
+print(valset.random_bool.value_counts())
+print('val')
 print(trainingset.random_bool.value_counts())
 print('')
 print('Devision clicks')
 print('training')
-print(testset.click_bool.value_counts())
-print('test')
+print(valset.click_bool.value_counts())
+print('val')
 print(trainingset.click_bool.value_counts())
 print('')
 print('Devision of months')
 print('training')
 print(trainingset.target_month.value_counts())
-print('test')
-print(testset.target_month.value_counts())
+print('val')
+print(valset.target_month.value_counts())
 
 #%% Write to files
-testset.to_pickle('Assignment_2/data/testset.pkl')
+valset.to_pickle('Assignment_2/data/valset.pkl')
 trainingset.to_pickle('Assignment_2/data/trainingset.pkl')
 
 #%%
