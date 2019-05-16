@@ -52,8 +52,12 @@ df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 # perform_ndcg(df, 'predicted', 'gain', False)
 
 #%%
-df.columns
 df['gain'] = df['click_bool'] + (5 * df['booking_bool'])
-perform_ndcg(df, 'position', 'gain', True)
+
+#%%
+selected_df = df[['gain', 'prop_id', 'srch_id', 'position', 'random_bool']]
+#%%
+rundf = selected_df[selected_df.random_bool == 0]
+perform_ndcg(rundf, 'position', 'gain', True)
 
 #%%
