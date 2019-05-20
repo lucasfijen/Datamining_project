@@ -216,6 +216,43 @@ for prop in df['prop_id'].unique():
         prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
         prop_dest_avg_gain[prop+dest]= np.average(prop_dest_set['non_corrected_total'])
 
+#%%
+def remove_un_numerical(data, train = 1):
+    to_delete = [
+        'date_time',
+        'site_id',
+        'visitor_location_country_id',
+        'prop_country_id',
+        'prop_brand_bool',
+        'promotion_flag',
+        'srch_destination_id',
+        'random_bool',
+        'srch_id'
+    ]
+
+    for i in range(1,9):
+        rate = 'comp' + str(i) + '_rate'
+        inv = 'comp' + str(i) + '_inv'
+        #diff = 'comp' + str(i) + '_rate_percent_diff'
+        to_delete.extend([rate,inv])
+
+    if train == 1:
+        to_delete.extend(['position','gross_bookings_usd', 'click_bool', 'booking_bool'])
+
+    data.drop(to_delete, axis=1, inplace=True)
+    data.fillna(-10)
+#%% create prop_id numerical values frame
+df_test_copy = df_test.copy()
+df_train_copy = df.copy()
+remove_un_numerical(df_train_copy)
+remove_un_numerical(df_test_copy, 0)
+all_numeric = pd.concat([df_train_copy,df_test_copy],axis=0)
+
+# all_numeric.drop('srch_id',axis=1,inplace=True)
+all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.median, np.mean, np.std])
+all_groupby_reset_index = all_groupby.reset_index()
+all_groupby_reset_index.columns = ['_'.join(col).strip() for col in all_groupby_reset_index.columns.values]
+all_groupby_reset_index.fillna(0,inplace=True)
 
 #%% WORK IN PROGRESS
 def NDCG(ranking_df):
