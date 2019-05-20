@@ -9,9 +9,14 @@ rcParams['font.family'] = 'serif'
 
 #%% Reading in db
 try:
-    df = pd.read_csv('data/training_set_VU_DM.csv')
+    df = pd.read_csv('data/training_set_VU_DM.csv', nrows=1000)
 except:
-    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
+    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv', nrows=1000)
+
+try:
+    df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=1000)
+except:
+    df_test = pd.read_csv('Assignment_2/data/test_set_VU_DM.csv', nrows=1000)
 
 #%% Basis featurs of the dataset
 print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1], '\n')
@@ -125,7 +130,12 @@ plt.hist([booked, clicked, clicked_and_booked], density=True, label=labels)
 plt.legend()
 plt.show()
 
-#%% Determine number of destination_ids per prop_id
+#%% Add column with corrected position
+df = df.sort_values(['srch_id', 'position'])
+df['corrected_position'] = df.groupby(['srch_id']).cumcount()+1
+df['corrected_position'] = df.corrected_position / df.groupby('srch_id').corrected_position.transform(np.max) 
+
+#%% Create dict with props as keys, all search dests it appeared in as values
 prop_id_srch_dest = []
 prop_dest_dict = dict()
 # prop_dest_count = dict({key: 0 for key in np.unique(smalldf['prop_id'].values)})     # len(np.unique(smalldf['prop_id'].values))
@@ -149,7 +159,7 @@ for search_id in np.unique(df['srch_id'].values):
             prop_dest_dict[prop_id] = str(dest_id) 
 
 
-#%%
+#%% plot prop search dest amounts + normalized for number of searches it appeared in
 prop_dest_count = []
 prop_dest_count_normalized = []
 for prop_id in np.unique(df['prop_id'].values):
@@ -172,6 +182,41 @@ plt.xlabel('amount of associated destinations IDs for one property normalized by
 plt.ylabel('amount of properties')
 plt.savefig("(dest_ids_prop)_normalized")
 plt.show()
+
+#%% Measuring overlap of srch destination IDs between train and test set
+
+dest_ids_test = df_test['srch_destination_id'].unique().tolist()
+dest_ids_train = df['srch_destination_id'].unique().tolist()
+
+overlap = np.sum(np.isin(dest_ids_test, dest_ids_train))/len(dest_ids_test)
+
+print('srch_dest overlap', overlap) # 69 percent of test dest IDs in train dest IDs
+
+#%% Measuring overlap of prop IDs between train and test set
+
+prop_ids_test = df_test['prop_id'].unique().tolist()
+prop_ids_train = df['prop_id'].unique().tolist()
+
+overlap = np.sum(np.isin(prop_ids_test, prop_ids_train))/len(prop_ids_test)
+print('prop_id overlap', overlap) # 94 percent of test prop IDs in train prop IDs
+
+#%% Create dicts with prop+dest as keys, average corrected position AND average gain as values
+
+prop_dest_avg_corrected_pos = dict()
+
+for prop in df['prop_id'].unique():
+    for dest in df['srch_destination_id'].unique():
+        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
+        prop_dest_avg_corrected_pos[prop+dest]= np.average(prop_dest_set['corrected_position'])
+
+prop_dest_avg_gain = dict()
+
+for prop in df['prop_id'].unique():
+    for dest in df['srch_destination_id'].unique():
+        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
+        prop_dest_avg_gain[prop+dest]= np.average(prop_dest_set['non_corrected_total'])
+
+
 #%% WORK IN PROGRESS
 def NDCG(ranking_df):
     '''
