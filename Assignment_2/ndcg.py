@@ -2,6 +2,10 @@
 import pandas as pd
 import numpy as np
 
+import sys
+
+# sys.path.append("Assignment_2")
+
 def perform_new_ndcg(df, ranking_col, gain_col, ascending=False, cutoff=5):
     ''' Calculates the mean ndcg of the dataframe
         Requires:
