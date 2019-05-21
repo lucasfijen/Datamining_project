@@ -4,23 +4,27 @@ import numpy as np
 
 
 
-df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
-newdf = df.head(2000).copy()
-del df
-#%% 
-prop_dest_avg_corrected_pos = dict()
-
-gb = newdf.groupby(['prop_id', 'srch_destination_id']).mean()
 
 #%%
+def create_prop_dest_mean_performance(df, col_names, gb=None):
+    '''
+        Takes a df and optionally a df/groupby object with multiindex
+        col_names should be a list of columns to merge
+        information is added as a new column with suffix _mean
+        Returns:
+        - new dataframe with merged columns
+        - used groupby object
+    '''
+    if gb == None:
+        gb = df.groupby(['prop_id', 'srch_destination_id']).mean()
 
-gb
-#%%
-def create_prop_dest_mean_performance(df, gb=None, col_names):
-        if groupby == None:
-                gb = df.groupby(['prop_id', 'srch_destination_id']).mean()
-        newdf = df.merge(gb[col_names], 
-                         how='left', 
-                         on=['prop_id', 'srch_destination_id'],
-                         suffixes=(,'_mean'))
-        return newdf
+    newdf = df.merge(gb[col_names], 
+                     how='left', 
+                     on=['prop_id', 'srch_destination_id'],
+                     suffixes=(None,'_mean'))
+    return newdf, gb
+
+
+#EXAMPLE:
+# df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
+# df2, gb = create_prop_dest_mean_performance(df, col_names=['position'])
