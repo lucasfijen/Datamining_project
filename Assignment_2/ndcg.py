@@ -33,8 +33,7 @@ def helper_ndcg(group, ranking_col, gain_col, ascending, cutoff=5):
     ranks = sorted_df.index.values + 1
     rels = sorted_df[gain_col]
     idcg = rels / np.where(ranks == 1, ranks, np.log2(ranks))
-    if len(idcg) > cutoff:
-        idcg = idcg[:cutoff]
+    idcg = idcg[:cutoff]
     idcg = idcg.sum()
     return dcg / idcg
 
