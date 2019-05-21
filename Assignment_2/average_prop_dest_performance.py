@@ -19,5 +19,8 @@ gb
 def create_prop_dest_mean_performance(df, gb=None, col_names):
         if groupby == None:
                 gb = df.groupby(['prop_id', 'srch_destination_id']).mean()
-        newdf = df.merge(gb[col_names], how='left', on=['prop_id', 'srch_destination_id'])
+        newdf = df.merge(gb[col_names], 
+                         how='left', 
+                         on=['prop_id', 'srch_destination_id'],
+                         suffixes=(,'_mean'))
         return newdf
