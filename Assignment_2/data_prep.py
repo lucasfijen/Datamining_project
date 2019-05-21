@@ -1,6 +1,9 @@
 #%% Imports
 import os
-os.chdir('Assignment_2')
+try:    
+    os.chdir('Assignment_2')
+except:
+    print("youre already in assignment 2")
 
 import pandas as pd 
 import numpy as np
@@ -12,12 +15,20 @@ from pathlib import Path
 
 #%% Reading in db
 df = pd.read_csv('data/training_set_VU_DM.csv')
+df_test = pd.read_csv('data/test_set_VU_DM.csv')
+
+#%% Numerical features, average over prop_id (std & median)
+# df, df_test = functie Jan
 
 #%% DEDUCT MONTH as categorical variable
-df['date_time'] = pd.to_datetime(df['date_time'])
-df['target_month'] = (df['date_time'] + df['srch_booking_window'].astype('timedelta64[D]')).dt.month
+def add_target_month(df):
+    df['date_time'] = pd.to_datetime(df['date_time'])
+    df['target_month'] = (df['date_time'] + df['srch_booking_window'].astype('timedelta64[D]')).dt.month
+    return df
 
-#%% Perform split
+df = add_target_month(df)
+df_test = add_target_month(df_test)
+#%% Perform Train / valid split
 def split_dataset(df):
     np.random.seed(10)
     unique_srch_ids = df.srch_id.unique()
@@ -28,26 +39,28 @@ def split_dataset(df):
     val = df[~msk]
     return training, val
 
-if Path('data/valset.pkl').is_file():
-    print("Reading split from file")
-    val_df = pd.read_pickle('data/valset.pkl')
-    train_df = pd.read_pickle('data/trainingset.pkl')
-else:
-    print("Making split")
-    train_df, val_df = split_dataset(df)
-    val_df.to_pickle('data/valset.pkl')
-    train_df.to_pickle('data/trainingset.pkl')
+
+df_train, df_val = split_dataset(df)
 
 #%% CORRECTION for position bias (happens in position_bias.py)
-correction_df_train, corrected_gain_train = get_corrected_gain(train_df, None)
-train_df = pd.concat([train_df, corrected_gain_train], dim=1)
+# No knowledge of train may go into val and test!
+pb_correction_train, corrected_gain_train = get_corrected_gain(df_train, None)
+df_train = pd.concat([df_train, corrected_gain_train], axis=1)
 
-_, corrected_gain_valid = get_corrected_gain(val_df, correction_df_train)
-val_df = pd.concat([val_df, corrected_gain_valid], dim=1)
+_, corrected_gain_valid = get_corrected_gain(df_val, pb_correction_train)
+df_val = pd.concat([df_val, corrected_gain_valid], axis=1)
 
-#%% Numerical features, average over prop_id (std & median)
-all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.median, np.mean, np.std])
-
-
+# _, corrected_gain_test = get_corrected_gain(df_test, pb_correction_train)
+# df_test = pd.concat([df_test, corrected_gain_test], axis=1)
 #%% <PROP_ID, DESTINATION_ID> performance in terms of POSITION & CORRECTED GAIN
+df_train = 
 
+#%% One hot encoding van site_id, visitor_location_country, prop_country_id, target_month
+# Not: 'prop_id', 'srch_destination_id', 
+def onehot(df):
+    return pd.get_dummies(df, columns=['site_id', 'visitor_location_country_id', 'prop_country_id', 'target_month'], \
+                    prefix=['site_id', 'visitor_location_country_id', 'prop_country_id', 'target_month'])
+
+df_train = onehot(df_train)
+df_val = onehot(df_val)
+df_test = onhot(df_test)
