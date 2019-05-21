@@ -2,47 +2,38 @@
 import pandas as pd
 import numpy as np
 
-def perform_ndcg(df, ranking_col, gain_col, ascending=False, cutoff=5):
+def perform_new_ndcg(df, ranking_col, gain_col, ascending=False, cutoff=5):
     ''' Calculates the mean ndcg of the dataframe
         Requires:
         - the column that describes the actual gain,
         - a column on which the database should be sorted
         - whether to sort this last column
           in ascending or descending way.
-        Returns: Mean
+        Returns: Mean ndcg
     '''
-    results = []
-    for _, group in df.groupby(by='srch_id'):
-        results.append(helper_ndcg(group, ranking_col, gain_col, ascending))
+    ranks = np.array([i+1 for i in range(cutoff)])
+    ranks = np.where(ranks == 1, ranks, np.log2(ranks))
+    results = np.zeros(len(df['srch_id'].unique()))
 
-    return np.mean(results)
+    actual_ranking = df.sort_values(by=ranking_col, ascending=ascending).groupby('srch_id', sort=True)
+    ideal_ranking = df.sort_values(by=gain_col, ascending=False).groupby('srch_id', sort=True)
+    for i, ((_, actual_group), (_, ideal_group)) in enumerate(zip(actual_ranking, ideal_ranking)):
+        dcg = (actual_group['gain'].head(cutoff) / ranks).sum()
+        idcg = (ideal_group['gain'].head(cutoff) / ranks).sum()
+        results[i] = dcg/idcg
+    return results.mean()
 
-def helper_ndcg(group, ranking_col, gain_col, ascending, cutoff=5):
-    ''' Helper function for the perform_ndcg
-
+def make_submision(df, ranking_col, ascending=False):
     '''
-    sorted_df = group.sort_values(by=ranking_col, ascending=ascending).reset_index(drop=True)
-    ranks = sorted_df.index.values + 1
-    rels = sorted_df[gain_col]
-    dcg = rels / np.where(ranks == 1, ranks, np.log2(ranks))
-    if len(dcg) > cutoff:
-        dcg = dcg[:cutoff]
-    dcg = dcg.sum()
+        Creates output file
+        from df,
+        given the column on which it should sort,
+        whether it should sort in ascending order or not
+    '''
 
-    sorted_df = group.sort_values(by=gain_col, ascending=False).reset_index(drop=True)
-    ranks = sorted_df.index.values + 1
-    rels = sorted_df[gain_col]
-    idcg = rels / np.where(ranks == 1, ranks, np.log2(ranks))
-    if len(idcg) > cutoff:
-        idcg = idcg[:cutoff]
-    idcg = idcg.sum()
-    return dcg / idcg
-
-
-def make_scoring(df, ranking_col, ascending=False):
-    sorted_df = df.sorted_values(by=['srch_id', ranking_col], ascending=[True, ascending])
-    sorted_df = sorted_df['srch_id', 'prop_id']
-    sorted_df.to_csv('Assignement_2/data/submision.csv', index=False)
+    sorted_df = df.sort_values(by=['srch_id', ranking_col], ascending=[True, ascending])
+    sorted_df = sorted_df[['srch_id', 'prop_id']]
+    sorted_df.to_csv('Assignment_2/data/submision.csv', index=False)
 
 
 #%%
@@ -56,8 +47,17 @@ df['gain'] = df['click_bool'] + (5 * df['booking_bool'])
 
 #%%
 selected_df = df[['gain', 'prop_id', 'srch_id', 'position', 'random_bool']]
-#%%
-rundf = selected_df[selected_df.random_bool == 0]
-perform_ndcg(rundf, 'position', 'gain', True)
 
 #%%
+rundf = selected_df[selected_df.random_bool == 1]
+print('NDCG of random set:', perform_new_ndcg(rundf, 'position', 'gain', True))
+#%%
+rundf = selected_df[selected_df.random_bool == 0]
+print('NDCG of non-random set:', perform_new_ndcg(rundf, 'position', 'gain', True))
+#%%
+rundf = selected_df
+print('NDCG of whole set:', perform_new_ndcg(rundf, 'position', 'gain', True))
+
+#%%
+selection_df = df.head(1200)
+make_submision(selection_df, 'position', True)
