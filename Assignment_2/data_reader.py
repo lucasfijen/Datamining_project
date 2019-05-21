@@ -9,14 +9,36 @@ rcParams['font.family'] = 'serif'
 from sklearn.impute import SimpleImputer
 #%% Reading in db
 try:
-    df = pd.read_csv('data/training_set_VU_DM.csv', nrows=1000)
+    df = pd.read_csv('data/training_set_VU_DM.csv')
 except:
-    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv', nrows=1000)
+    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 
 try:
-    df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=1000)
+    df_test = pd.read_csv('data/test_set_VU_DM.csv')
 except:
-    df_test = pd.read_csv('Assignment_2/data/test_set_VU_DM.csv', nrows=1000)
+    df_test = pd.read_csv('Assignment_2/data/test_set_VU_DM.csv')
+
+#%% Print some stats
+print('split devision')
+print(len(trainingset) / (len(trainingset) + len(valset)))
+print('')
+print('Devision random - not random')
+print('training')
+print(valset.random_bool.value_counts())
+print('val')
+print(trainingset.random_bool.value_counts())
+print('')
+print('Devision clicks')
+print('training')
+print(valset.click_bool.value_counts())
+print('val')
+print(trainingset.click_bool.value_counts())
+print('')
+print('Devision of months')
+print('training')
+print(trainingset.target_month.value_counts())
+print('val')
+print(valset.target_month.value_counts())
 
 #%% Basis featurs of the dataset
 print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1], '\n')
