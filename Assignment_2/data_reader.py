@@ -9,14 +9,36 @@ rcParams['font.family'] = 'serif'
 
 #%% Reading in db
 try:
-    df = pd.read_csv('data/training_set_VU_DM.csv', nrows=1000)
+    df = pd.read_csv('data/training_set_VU_DM.csv')
 except:
-    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv', nrows=1000)
+    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 
 try:
-    df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=1000)
+    df_test = pd.read_csv('data/test_set_VU_DM.csv')
 except:
-    df_test = pd.read_csv('Assignment_2/data/test_set_VU_DM.csv', nrows=1000)
+    df_test = pd.read_csv('Assignment_2/data/test_set_VU_DM.csv')
+
+#%% Print some stats
+print('split devision')
+print(len(trainingset) / (len(trainingset) + len(valset)))
+print('')
+print('Devision random - not random')
+print('training')
+print(valset.random_bool.value_counts())
+print('val')
+print(trainingset.random_bool.value_counts())
+print('')
+print('Devision clicks')
+print('training')
+print(valset.click_bool.value_counts())
+print('val')
+print(trainingset.click_bool.value_counts())
+print('')
+print('Devision of months')
+print('training')
+print(trainingset.target_month.value_counts())
+print('val')
+print(valset.target_month.value_counts())
 
 #%% Basis featurs of the dataset
 print('Number of datapoints:', df.shape[0], 'Number of initial features:', df.shape[1], '\n')
@@ -253,22 +275,3 @@ all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.median, np.mean, 
 all_groupby_reset_index = all_groupby.reset_index()
 all_groupby_reset_index.columns = ['_'.join(col).strip() for col in all_groupby_reset_index.columns.values]
 all_groupby_reset_index.fillna(0,inplace=True)
-
-#%% WORK IN PROGRESS
-def NDCG(ranking_df):
-    '''
-    This function expects a ranking_df, which is a Dataframe 
-    containing the following columns and corresponding 1 search_id:
-    prop_id, predicted_val,  click_bool, booking_bool
-    '''
-    count_booked = 1
-    count_clicked = 6
-    count_nothing = 5
-    total_length = count_booked + count_clicked + count_nothing
-    for i in range(total_length)
-    ideal_dcg = for i in range(count_booked
-
-# nonrandom_fig = nonrandom_plot.get_figure()
-# nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
-# nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
-

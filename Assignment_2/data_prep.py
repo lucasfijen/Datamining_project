@@ -44,22 +44,10 @@ train_df = pd.concat([train_df, corrected_gain_train], dim=1)
 
 _, corrected_gain_valid = get_corrected_gain(val_df, correction_df_train)
 val_df = pd.concat([val_df, corrected_gain_valid], dim=1)
+
 #%% Numerical features, average over prop_id (std & median)
 all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.median, np.mean, np.std])
 
 
 #%% <PROP_ID, DESTINATION_ID> performance in terms of POSITION & CORRECTED GAIN
 
-prop_dest_avg_corrected_pos = dict()
-
-for prop in df['prop_id'].unique():
-    for dest in df['srch_destination_id'].unique():
-        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
-        prop_dest_avg_corrected_pos[prop+dest]= np.average(prop_dest_set['corrected_position'])
-
-prop_dest_avg_gain = dict()
-
-for prop in df['prop_id'].unique():
-    for dest in df['srch_destination_id'].unique():
-        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
-        prop_dest_avg_gain[prop+dest]= np.average(prop_dest_set['non_corrected_total'])
