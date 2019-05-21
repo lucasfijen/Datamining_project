@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 sns.set_palette("Paired")
 from matplotlib import rcParams
 rcParams['font.family'] = 'serif'
-
+from sklearn.impute import SimpleImputer
 #%% Reading in db
 try:
     df = pd.read_csv('data/training_set_VU_DM.csv')
@@ -239,7 +239,7 @@ for prop in df['prop_id'].unique():
         prop_dest_avg_gain[prop+dest]= np.average(prop_dest_set['non_corrected_total'])
 
 #%%
-def remove_un_numerical(data, train = 1):
+def prep_categorical_numerical_descriptors(data, train = 1):
     to_delete = [
         'date_time',
         'site_id',
@@ -262,7 +262,12 @@ def remove_un_numerical(data, train = 1):
         to_delete.extend(['position','gross_bookings_usd', 'click_bool', 'booking_bool'])
 
     data.drop(to_delete, axis=1, inplace=True)
+
+#%% 
+def fill_nan(data):
+    data['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
     data.fillna(-10)
+
 #%% create prop_id numerical values frame
 df_test_copy = df_test.copy()
 df_train_copy = df.copy()
@@ -270,8 +275,27 @@ remove_un_numerical(df_train_copy)
 remove_un_numerical(df_test_copy, 0)
 all_numeric = pd.concat([df_train_copy,df_test_copy],axis=0)
 
-# all_numeric.drop('srch_id',axis=1,inplace=True)
-all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.median, np.mean, np.std])
+all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.nanmedian, np.nanmean, np.nanstd])
 all_groupby_reset_index = all_groupby.reset_index()
 all_groupby_reset_index.columns = ['_'.join(col).strip() for col in all_groupby_reset_index.columns.values]
 all_groupby_reset_index.fillna(0,inplace=True)
+
+#%% WORK IN PROGRESS
+def NDCG(ranking_df):
+    '''
+    This function expects a ranking_df, which is a Dataframe 
+    containing the following columns and corresponding 1 search_id:
+    prop_id, predicted_val,  click_bool, booking_bool
+    '''
+    count_booked = 1
+    count_clicked = 6
+    count_nothing = 5
+    total_length = count_booked + count_clicked + count_nothing
+    for i in range(total_length)
+    ideal_dcg = for i in range(count_booked
+
+# nonrandom_fig = nonrandom_plot.get_figure()
+# nonrandom_plot = nonrandom_.plot.bar(width=1, figsize=[14, 8], title='Non-random positioning')
+# nonrandom_fig.savefig('nonrandom_position.png', dpi=200, facecolor='white')
+
+#%%
