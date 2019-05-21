@@ -1,13 +1,23 @@
+#%%
+import pandas as pd 
+import numpy as np
+
+
+
+df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
+newdf = df.head(2000).copy()
+del df
+#%% 
 prop_dest_avg_corrected_pos = dict()
 
-for prop in df['prop_id'].unique():
-    for dest in df['srch_destination_id'].unique():
-        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
-        prop_dest_avg_corrected_pos[prop+dest]= np.average(prop_dest_set['corrected_position'])
+gb = newdf.groupby(['prop_id', 'srch_destination_id']).mean()
 
-prop_dest_avg_gain = dict()
+#%%
 
-for prop in df['prop_id'].unique():
-    for dest in df['srch_destination_id'].unique():
-        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
-        prop_dest_avg_gain[prop+dest]= np.average(prop_dest_set['non_corrected_total'])
+gb
+#%%
+def create_prop_dest_mean_performance(df, gb=None, col_names):
+        if groupby == None:
+                gb = df.groupby(['prop_id', 'srch_destination_id']).mean()
+        newdf = df.merge(gb[col_names], how='left', on=['prop_id', 'srch_destination_id'])
+        return newdf
