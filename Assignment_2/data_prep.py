@@ -1,21 +1,21 @@
 #%% Imports
+import os
+os.chdir('Assignment_2')
+
 import pandas as pd 
 import numpy as np
 import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
 sns.set_palette("Paired")
+from position_bias import *
+from pathlib import Path
 
 #%% Reading in db
-try:
-    df = pd.read_csv('data/training_set_VU_DM.csv')
-except:
-    df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
+df = pd.read_csv('data/training_set_VU_DM.csv')
 
-
-#%% Calculate the month for which people are looking
+#%% DEDUCT MONTH as categorical variable
 df['date_time'] = pd.to_datetime(df['date_time'])
 df['target_month'] = (df['date_time'] + df['srch_booking_window'].astype('timedelta64[D]')).dt.month
-
 
 #%% Perform split
 def split_dataset(df):
@@ -27,32 +27,39 @@ def split_dataset(df):
     training = df[msk]
     val = df[~msk]
     return training, val
-trainingset, valset = split_dataset(df)
 
-#%% Print some stats
-print('split devision')
-print(len(trainingset) / (len(trainingset) + len(valset)))
-print('')
-print('Devision random - not random')
-print('training')
-print(valset.random_bool.value_counts())
-print('val')
-print(trainingset.random_bool.value_counts())
-print('')
-print('Devision clicks')
-print('training')
-print(valset.click_bool.value_counts())
-print('val')
-print(trainingset.click_bool.value_counts())
-print('')
-print('Devision of months')
-print('training')
-print(trainingset.target_month.value_counts())
-print('val')
-print(valset.target_month.value_counts())
+if Path('data/valset.pkl').is_file():
+    print("Reading split from file")
+    val_df = pd.read_pickle('data/valset.pkl')
+    train_df = pd.read_pickle('data/trainingset.pkl')
+else:
+    print("Making split")
+    train_df, val_df = split_dataset(df)
+    val_df.to_pickle('data/valset.pkl')
+    train_df.to_pickle('data/trainingset.pkl')
 
-#%% Write to files
-valset.to_pickle('Assignment_2/data/valset.pkl')
-trainingset.to_pickle('Assignment_2/data/trainingset.pkl')
+#%% CORRECTION for position bias (happens in position_bias.py)
+correction_df_train, corrected_gain_train = get_corrected_gain(train_df, None)
+train_df = pd.concat([train_df, corrected_gain_train], dim=1)
 
-#%%
+_, corrected_gain_valid = get_corrected_gain(val_df, correction_df_train)
+val_df = pd.concat([val_df, corrected_gain_valid], dim=1)
+#%% Numerical features, average over prop_id (std & median)
+all_groupby = all_numeric.groupby('prop_id',sort=True).agg([np.median, np.mean, np.std])
+
+
+#%% <PROP_ID, DESTINATION_ID> performance in terms of POSITION & CORRECTED GAIN
+
+prop_dest_avg_corrected_pos = dict()
+
+for prop in df['prop_id'].unique():
+    for dest in df['srch_destination_id'].unique():
+        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
+        prop_dest_avg_corrected_pos[prop+dest]= np.average(prop_dest_set['corrected_position'])
+
+prop_dest_avg_gain = dict()
+
+for prop in df['prop_id'].unique():
+    for dest in df['srch_destination_id'].unique():
+        prop_dest_set = df.loc[(df['prop_id'] == prop) & df['srch_destination_id'].isin([dest])]
+        prop_dest_avg_gain[prop+dest]= np.average(prop_dest_set['non_corrected_total'])
