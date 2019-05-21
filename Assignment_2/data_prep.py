@@ -8,10 +8,17 @@ import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
 sns.set_palette("Paired")
 from position_bias import *
+from categorical_processing import *
 from pathlib import Path
 
+
 #%% Reading in db
-df = pd.read_csv('data/training_set_VU_DM.csv')
+df = pd.read_csv('data/training_set_VU_DM.csv',nrows=1000)
+df_test = pd.read_csv('data/test_set_VU_DM.csv',nrows=1000)
+
+#%%
+df, df_test = add_descriptors(df, df_test, 'prop_id')
+print(df)
 
 #%% DEDUCT MONTH as categorical variable
 df['date_time'] = pd.to_datetime(df['date_time'])
