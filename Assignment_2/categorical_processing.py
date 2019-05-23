@@ -17,18 +17,36 @@ def add_descriptors(train_data, test_data, variable):
     newdf_train = train_data.merge(all_groupby_reset_index, 
                     how='left', 
                     left_on=[variable],
-                    right_on=[variable+'_'],
-                    suffixes=(None, '_'+variable))
+                    right_on=[variable+'_']) #,suffixes=(None, '_'+variable)
     newdf_test = test_data.merge(all_groupby_reset_index, 
                     how='left', 
                     left_on=[variable],
-                    right_on=[variable+'_'],
-                    suffixes=[None, '_'+variable])
+                    right_on=[variable+'_']
+                    )#,suffixes=[None, '_'+variable]
 
     newdf_train.drop([variable],axis=1)
     newdf_test.drop([variable], axis=1)
 
-    return(newdf_train, newdf_test)
+    to_delete = []
+    for c in newdf_train:
+        if ('prop_id_' in c)  or ('comp' in c):
+            to_delete.append(c)
+
+    newdf_test.drop(to_delete, axis=1, inplace=True)
+    newdf_train.drop(to_delete, axis=1, inplace=True)
+
+    to_delete = [  'prop_country_id',
+                'prop_starrating',
+                'prop_review_score',
+                'prop_brand_bool',
+                'prop_location_score1',
+                'prop_location_score2',
+                'prop_log_historical_price']
+
+    newdf_test.drop(to_delete, axis=1, inplace=True)
+    newdf_train.drop(to_delete, axis=1, inplace=True)
+
+    return newdf_train, newdf_test
 
 
 def prep_categorical_numerical_descriptors(data, train = 1):
@@ -54,8 +72,8 @@ def prep_categorical_numerical_descriptors(data, train = 1):
     for i in range(1,9):
         rate = 'comp' + str(i) + '_rate'
         inv = 'comp' + str(i) + '_inv'
-        #diff = 'comp' + str(i) + '_rate_percent_diff'
-        to_delete.extend([rate,inv])
+        diff = 'comp' + str(i) + '_rate_percent_diff'
+        to_delete.extend([rate,inv, diff])
 
     if train == 1:
         to_delete.extend(['position','gross_bookings_usd', 'click_bool', 'booking_bool'])
@@ -72,11 +90,11 @@ def prep_categorical_numerical_descriptors(data, train = 1):
 
 
 #%%
-df = pd.read_csv('data/training_set_VU_DM.csv',nrows=1000)
-df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=1000)
+# df = pd.read_csv('data/training_set_VU_DM.csv',nrows=1000)
+# df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=1000)
 
-a, b = add_descriptors(df, df_test, 'prop_id')
-print(a.columns)
+# a, b = add_descriptors(df, df_test, 'prop_id')
+# print(a.columns)
 
 # #%%
 # print(a.columns)

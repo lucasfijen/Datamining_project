@@ -17,8 +17,8 @@ from average_prop_dest_performance import *
 
 #%% Reading in db
 
-df = pd.read_csv('data/training_set_VU_DM.csv', nrows=300000)
-df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=300000)
+df = pd.read_csv('data/training_set_VU_DM.csv', nrows=20000)
+df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=20000)
 
 print('df.shape', df.shape)
 print('df_test.shape', df_test.shape)
@@ -30,6 +30,9 @@ df, df_test = add_descriptors(df, df_test, 'prop_id')
 print('df.shape', df.shape)
 print('df_test.shape', df_test.shape)
 print(set(df.columns) - set(df_test.columns))
+
+# for c in df.columns:
+#     print(c)
 # over prop_country_id
 # df, df_test = add_descriptors(df, df_test, 'prop_country_id')
 
@@ -58,6 +61,10 @@ df_test = add_target_month(df_test)
 # Not: 'prop_id', 'srch_destination_id', 
 # 'visitor_location_country_id', 'prop_country_id', drop also 'site_id', because not the same in sets
 
+print('df.shape', df.shape)
+print('df_test.shape', df_test.shape)
+print(set(df.columns) - set(df_test.columns))
+
 def onehot(df):
     onehot = pd.get_dummies(df, columns=['target_month'])
     # print(onehot.shape)
@@ -65,6 +72,7 @@ def onehot(df):
 
 
 month_OH_train = onehot(pd.DataFrame(df['target_month']))
+print(month_OH_train.shape)
 month_OH_test = onehot(pd.DataFrame(df_test['target_month']))
 
 df = pd.concat([df, month_OH_train], axis=1)
@@ -98,6 +106,10 @@ df_train = pd.concat([df_train, corrected_gain_train], axis=1)
 _, corrected_gain_valid = get_corrected_gain(df_val, pb_correction_train)
 df_val = pd.concat([df_val, corrected_gain_valid], axis=1)
 
+#%%
+
+df_train[['position', 'click_bool', 'booking_bool', 'corrected_click_gain', 'corrected_book_gain']].iloc[300:400, :]
+
 # _, corrected_gain_test = get_corrected_gain(df_test, pb_correction_train)
 # df_test = pd.concat([df_test, corrected_gain_test], axis=1)
 
@@ -110,9 +122,18 @@ def normalize_pos(df):
 
 df_train = normalize_pos(df_train)
 df_val = normalize_pos(df_val)
+
+#%%
+df_train[df_train['srch_id']==4][['position', 'corrected_position']]
+
 #%%
 #%% <PROP_ID, DESTINATION_ID> performance in terms of POSITION & CORRECTED GAIN
 
+# print("CHECK!!!!!!!!")
+# print(df_train.columns)
+# print(df_val.columns)
+# print(df_test.columns)
+# exit()
 df_train, gb_train = create_prop_dest_mean_performance(df_train, ['total_corrected_gain'], None)
 df_val, _ = create_prop_dest_mean_performance(df_val, ['total_corrected_gain'], gb_train)
 # DOES NOT WORK FOR TEST
