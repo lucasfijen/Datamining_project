@@ -19,6 +19,10 @@ df_train = pd.read_csv('prepped_df_train.csv')
 df_test = pd.read_csv('prepped_df_test.csv')
 df_val = pd.read_csv('prepped_df_val.csv')
 
+#%%
+df_test['XXX_GAIN_MEAN_XXX']
+
+
 #%% SHAPE & DIFFERENCES
 print('df_train.shape', df_train.shape)
 print('df_val.shape', df_val.shape)
@@ -51,7 +55,7 @@ train_exclude = ['total_non_corrected_gain',
             'corrected_book_gain',
             'total_corrected_gainNone',
             'corrected_position',
-            'total_corrected_gain_mean',
+            #'total_corrected_gain_mean',
             'position',
             'click_bool',
             'gross_bookings_usd',
@@ -99,6 +103,9 @@ target_valid_gain = df_val[['total_corrected_gainNone']]
 X_test_gain = df_test.drop(exclude, axis=1)
 X_train_gain = df_train.drop(exclude+train_exclude, axis=1)
 X_val_gain = df_val.drop(exclude+train_exclude, axis=1)
+
+#%%
+print(X_test.columns)
 
 #%%
 # Gain model
