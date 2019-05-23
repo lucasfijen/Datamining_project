@@ -33,7 +33,7 @@ def get_corrected_gain(df, correction_df):
         bookings_correction = 1 - random_bookings
         correction_df = pd.concat([random_clicks.rename('random clicks'), nonrandom_clicks.rename('non_random_clicks'), random_bookings.rename('random bookings'), nonrandom_bookings.rename('nonrandom bookings'), clicks_correction.rename('clicks_correction'), bookings_correction.rename('bookings_correction')], axis=1)
         correction_df.reset_index(inplace=True)
-        correction_df.to_pickle('position_bias_correction.pickle')
+        # correction_df.to_pickle('position_bias_correction.pickle')
     
     # print(correction_df.columns)
     
