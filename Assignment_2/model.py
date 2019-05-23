@@ -19,10 +19,6 @@ df_train = pd.read_csv('prepped_df_train.csv')
 df_test = pd.read_csv('prepped_df_test.csv')
 df_val = pd.read_csv('prepped_df_val.csv')
 
-#%%
-df_test['XXX_GAIN_MEAN_XXX']
-
-
 #%% SHAPE & DIFFERENCES
 print('df_train.shape', df_train.shape)
 print('df_val.shape', df_val.shape)
@@ -46,6 +42,7 @@ index_test = df_test[['srch_id', 'prop_id']]
 target_train = df_train[['corrected_position']]
 target_val = df_val[['corrected_position']]
 
+
 #%%
 exclude = ['srch_id', 
             'prop_id'
@@ -65,6 +62,11 @@ X_test = df_test.drop(exclude, axis=1)
 X_train = df_train.drop(exclude+train_exclude, axis=1)
 X_val = df_val.drop(exclude+train_exclude, axis=1)
 
+#%%
+# print(sum(np.isnan(X_val.values)))
+print(len(X_val))
+X_val.isna().sum()
+#%%
 print('df_train.shape', X_train.shape)
 print('df_val.shape', X_val.shape)
 print('df_test.shape', X_test.shape)

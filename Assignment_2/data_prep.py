@@ -115,11 +115,13 @@ df_val = normalize_pos(df_val)
 
 df_train, gb_train = create_prop_dest_mean_performance(df_train, ['total_corrected_gain'], None)
 df_val, _ = create_prop_dest_mean_performance(df_val, ['total_corrected_gain'], gb_train)
+# DOES NOT WORK FOR TEST
 df_test, _ = create_prop_dest_mean_performance(df_test, ['total_corrected_gain'], gb_train)
 
-df_train.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
-df_val.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
-df_test.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
+# df_train.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
+# df_val.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
+# df_test.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
+
 #%% ALSO DROP some stuff: 
 def drop(df):
     df = df.drop(['site_id', 'visitor_location_country_id', 'prop_country_id'], axis=1)
