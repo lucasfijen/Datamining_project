@@ -21,11 +21,26 @@ from average_prop_dest_performance import *
 df = pd.read_csv('data/training_set_VU_DM.csv',nrows=1000)
 df_test = pd.read_csv('data/test_set_VU_DM.csv',nrows=1000)
 
-#%% Numerical features, average over prop_id (std & median)
+#%% Numerical features, 
+# over prop_id (std & median)
 df, df_test = add_descriptors(df, df_test, 'prop_id')
 
-df = pd.read_csv('data/training_set_VU_DM.csv')
-df_test = pd.read_csv('data/test_set_VU_DM.csv')
+# over prop_country_id
+df, df_test = add_descriptors(df, df_test, 'prop_country_id')
+
+# over 'srch_destination_id'
+df, df_test = add_descriptors(df, df_test, 'prop_country_id')
+
+
+#%%
+print(df.columns)
+#%% fill nans
+
+df['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
+df.fillna(-10)
+
+df_test['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
+df_test.fillna(-10)
 
 #%% DEDUCT MONTH as categorical variable
 def add_target_month(df):
