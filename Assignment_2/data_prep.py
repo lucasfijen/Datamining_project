@@ -17,8 +17,8 @@ from average_prop_dest_performance import *
 
 #%% Reading in db
 
-df = pd.read_csv('data/training_set_VU_DM.csv', nrows=20000)
-df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=20000)
+df = pd.read_csv('data/training_set_VU_DM.csv', nrows=300000)
+df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=300000)
 
 print('df.shape', df.shape)
 print('df_test.shape', df_test.shape)
@@ -140,6 +140,7 @@ print(set(df_val.columns) - set(df_test.columns))
 print(set(df_train.columns) - set(df_val.columns))
 
 #%%
+print('writing to file')
 df_train.to_csv('prepped_df_train.csv')
 df_test.to_csv('prepped_df_test.csv')
 df_val.to_csv('prepped_df_val.csv')

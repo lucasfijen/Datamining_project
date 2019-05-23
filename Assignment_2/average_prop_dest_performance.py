@@ -23,7 +23,9 @@ def create_prop_dest_mean_performance(df, col_names, gb=None):
                      on=['prop_id', 'srch_destination_id'],
                      suffixes=(None,'_mean'))
     
-    newdf.fillna(0)
+    # print(newdf.isna().sum())
+    newdf = newdf.fillna(0)
+    # print(newdf.isna().sum())
     
     return newdf, gb
 

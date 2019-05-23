@@ -19,6 +19,10 @@ df_train = pd.read_csv('prepped_df_train.csv')
 df_test = pd.read_csv('prepped_df_test.csv')
 df_val = pd.read_csv('prepped_df_val.csv')
 
+df_val.isna().sum()
+df_train.isna().sum()
+df_test.isna().sum()
+
 #%% SHAPE & DIFFERENCES
 print('df_train.shape', df_train.shape)
 print('df_val.shape', df_val.shape)
@@ -63,10 +67,6 @@ X_train = df_train.drop(exclude+train_exclude, axis=1)
 X_val = df_val.drop(exclude+train_exclude, axis=1)
 
 #%%
-# print(sum(np.isnan(X_val.values)))
-print(len(X_val))
-X_val.isna().sum()
-#%%
 print('df_train.shape', X_train.shape)
 print('df_val.shape', X_val.shape)
 print('df_test.shape', X_test.shape)
@@ -82,6 +82,7 @@ from sklearn.metrics import mean_squared_error
 # Position model
 GBR_position = GradientBoostingRegressor()
 GBR_position.fit(X_train.values, target_train.values.reshape(-1,))
+
 
 #%%
 valid_position_prediction = GBR_position.predict(X_val.values)
@@ -122,7 +123,7 @@ print("MSE: %.4f" % MSE)
 #%%
 valid_position_prediction = (1. - valid_position_prediction) * 6
 #%%
-total_prediction = (0.5 * valid_position_prediction) + (0.5 * valid_gain_prediction)
+total_prediction = valid_gain_prediction #(0.5 * valid_position_prediction) + 
 
 #%%
 total_df = pd.DataFrame(total_prediction, columns=['prediction'])
@@ -141,17 +142,8 @@ print(perform_new_ndcg(total_df, 'prediction', 'gain'))
 # print(perform_new_ndcg(random_df, 'prediction', 'gain'))
 
 #%%
-#%% SCORE ON JUST <PROP_ID, DESTINATION_ID> CORRECTED GAIN
-# df_train = pd.read_csv('prepped_df_train.csv')
-# df_test = pd.read_csv('prepped_df_test.csv')
-# df_val = pd.read_csv('prepped_df_val.csv')
-
-# for c in df_train.columns:
-#     print(c)
-
-#%%
-# GBR_corrected_position = GradientBoostingRegressor()
-# X_train_corrected_position = X_train['corrected_position']
+# GBR_XXX = GradientBoostingRegressor()
+# X_train_corrected_position = X_train['total_corrected_gain_mean']
 # GBR_corrected_position.fit(X_train_gain.values, target_train_gain.values.reshape(-1,))
 
 
