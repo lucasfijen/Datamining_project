@@ -15,32 +15,35 @@ from categorical_processing import *
 from pathlib import Path
 from average_prop_dest_performance import *
 
-
 #%% Reading in db
 
-df = pd.read_csv('data/training_set_VU_DM.csv',nrows=1000)
-df_test = pd.read_csv('data/test_set_VU_DM.csv',nrows=1000)
+df = pd.read_csv('data/training_set_VU_DM.csv', nrows=100000)
+df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=100000)
 
+print('df.shape', df.shape)
+print('df_test.shape', df_test.shape)
+print(set(df.columns) - set(df_test.columns))
 #%% Numerical features, 
 # over prop_id (std & median)
 df, df_test = add_descriptors(df, df_test, 'prop_id')
 
+print('df.shape', df.shape)
+print('df_test.shape', df_test.shape)
+print(set(df.columns) - set(df_test.columns))
 # over prop_country_id
-df, df_test = add_descriptors(df, df_test, 'prop_country_id')
+# df, df_test = add_descriptors(df, df_test, 'prop_country_id')
 
 # over 'srch_destination_id'
-df, df_test = add_descriptors(df, df_test, 'prop_country_id')
+# df, df_test = add_descriptors(df, df_test, 'prop_country_id')
 
 
-#%%
-print(df.columns)
 #%% fill nans
 
-df['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
-df.fillna(-10)
+df['srch_query_affinity_score'] = df['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
+df = df.fillna(-10)
 
-df_test['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
-df_test.fillna(-10)
+df_test['srch_query_affinity_score'] = df_test['srch_query_affinity_score'].fillna(10) # values are logs of probabilaty, all negtive
+df_test = df_test.fillna(-10)
 
 #%% DEDUCT MONTH as categorical variable
 def add_target_month(df):
@@ -50,6 +53,29 @@ def add_target_month(df):
 
 df = add_target_month(df)
 df_test = add_target_month(df_test)
+
+#%% One hot encoding van site_id, visitor_location_country, prop_country_id, target_month
+# Not: 'prop_id', 'srch_destination_id', 
+# 'visitor_location_country_id', 'prop_country_id', drop also 'site_id', because not the same in sets
+
+def onehot(df):
+    onehot = pd.get_dummies(df, columns=['target_month'])
+    # print(onehot.shape)
+    return onehot
+
+
+month_OH_train = onehot(pd.DataFrame(df['target_month']))
+month_OH_test = onehot(pd.DataFrame(df_test['target_month']))
+
+df = pd.concat([df, month_OH_train], axis=1)
+df_test = pd.concat([df_test, month_OH_test], axis=1)
+df = df.drop(['target_month', 'date_time'], axis=1)
+df_test = df_test.drop(['target_month', 'date_time'], axis=1)
+
+print('df.shape', df.shape)
+print('df_test.shape', df_test.shape)
+print(set(df.columns) - set(df_test.columns))
+
 #%% Perform Train / valid split
 def split_dataset(df):
     np.random.seed(10)
@@ -85,24 +111,29 @@ def normalize_pos(df):
 df_train = normalize_pos(df_train)
 df_val = normalize_pos(df_val)
 #%%
-df_train.columns
 #%% <PROP_ID, DESTINATION_ID> performance in terms of POSITION & CORRECTED GAIN
 df_train, gb_train = create_prop_dest_mean_performance(df_train, ['total_corrected_gain'], None)
 df_val, _ = create_prop_dest_mean_performance(df_val, ['total_corrected_gain'], gb_train)
 
-#%% One hot encoding van site_id, visitor_location_country, prop_country_id, target_month
-# Not: 'prop_id', 'srch_destination_id', 
-def onehot(df):
-    return pd.get_dummies(df, columns=['site_id', 'visitor_location_country_id', 'prop_country_id', 'target_month'], \
-                    prefix=['site_id', 'visitor_location_country_id', 'prop_country_id', 'target_month'])
+#%% ALSO DROP some stuff: 
+def drop(df):
+    df = df.drop(['site_id', 'visitor_location_country_id', 'prop_country_id'], axis=1)
+    return df
 
-df_train = onehot(df_train)
-df_val = onehot(df_val)
-df_test = onehot(df_test)
+df_test = drop(df_test)
+df_train = drop(df_train)
+df_val = drop(df_val)
+
+#%% SANITY CHECK
+print('df_train.shape', df_train.shape)
+print('df_val.shape', df_val.shape)
+print('df_test.shape', df_test.shape)
+print(set(df_train.columns) - set(df_test.columns))
+print(set(df_val.columns) - set(df_test.columns))
+print(set(df_train.columns) - set(df_val.columns))
 
 #%%
-df_train.to_pickle('prepped_df_train.pkl')
-df_test.to_pickle('prepped_df_test.pkl')
-df_val.to_pickle('prepped_df_val.pkl')
-
+df_train.to_csv('prepped_df_train.csv')
+df_test.to_csv('prepped_df_test.csv')
+df_val.to_csv('prepped_df_val.csv')
 #%%
