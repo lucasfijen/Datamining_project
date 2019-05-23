@@ -65,3 +65,20 @@ print(set(X_train.columns) - set(X_test.columns))
 print(set(X_val.columns) - set(X_test.columns))
 print(set(X_train.columns) - set(X_val.columns))
 #%%
+
+#%% STEP 2: QUALITY / GAIN MODEL
+df_train = pd.read_csv('prepped_df_train.csv')
+df_test = pd.read_csv('prepped_df_test.csv')
+df_val = pd.read_csv('prepped_df_val.csv')
+
+#%% Target = position (position based model)
+target_train_gain = df_train[['total_corrected_gainNone']].values
+target_valid_gain = df_val[['total_corrected_gainNone']].values
+
+X_test_gain = df_test.drop(exclude, axis=1).values
+X_train_gain = df_train.drop(exclude+train_exclude, axis=1).values
+X_val_gain = df_val.drop(exclude+train_exclude, axis=1).values
+
+print(target_train_gain.shape, X_train_gain.shape)
+
+#%%
