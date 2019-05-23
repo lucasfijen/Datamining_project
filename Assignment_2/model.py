@@ -125,4 +125,25 @@ total_df.columns
 #%%
 print(perform_new_ndcg(total_df, 'prediction', 'gain'))
 
+#%% RANDOM SCORE 
+# random_prediction = np.random.normal(size=(len(total_df,)))
+# random_df = pd.DataFrame(random_prediction, columns=['prediction'])
+# random_df = pd.concat([random_df, df_val['total_non_corrected_gain'].rename('gain'), index_val], axis=1)
+# print(perform_new_ndcg(random_df, 'prediction', 'gain'))
+
+#%%
+#%% SCORE ON JUST <PROP_ID, DESTINATION_ID> CORRECTED GAIN
+# df_train = pd.read_csv('prepped_df_train.csv')
+# df_test = pd.read_csv('prepped_df_test.csv')
+# df_val = pd.read_csv('prepped_df_val.csv')
+
+# for c in df_train.columns:
+#     print(c)
+
+#%%
+# GBR_corrected_position = GradientBoostingRegressor()
+# X_train_corrected_position = X_train['corrected_position']
+# GBR_corrected_position.fit(X_train_gain.values, target_train_gain.values.reshape(-1,))
+
+
 #%%
