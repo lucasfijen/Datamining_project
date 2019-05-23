@@ -36,13 +36,8 @@ index_val = df_val[['srch_id', 'prop_id']]
 index_test = df_test[['srch_id', 'prop_id']]
 
 #%% Target = position (position based model)
-<<<<<<< HEAD
 target_train = df_train[['corrected_position']].values
 target_valid = df_val[['corrected_position']].values
-=======
-target_train = df_train[['corrected_position']]
-target_valid = df_val[['corrected_position']]
->>>>>>> 3027cc230e01003b4a4c2b625f5da3751a1eeac9
 
 #%%
 exclude = ['srch_id', 
