@@ -36,8 +36,8 @@ index_val = df_val[['srch_id', 'prop_id']]
 index_test = df_test[['srch_id', 'prop_id']]
 
 #%% Target = position (position based model)
-target_train = df_train[['position']]
-target_valid = df_val[['position']]
+target_train = df_train[['corrected_position']].values
+target_valid = df_val[['corrected_position']].values
 
 #%%
 exclude = ['srch_id', 
@@ -54,9 +54,9 @@ train_exclude = ['total_non_corrected_gain',
             'gross_bookings_usd',
             'booking_bool']
 
-X_test = df_test.drop(exclude, axis=1)
-X_train = df_train.drop(exclude+train_exclude, axis=1)
-X_val = df_val.drop(exclude+train_exclude, axis=1)
+X_test = df_test.drop(exclude, axis=1).values
+X_train = df_train.drop(exclude+train_exclude, axis=1).values
+X_val = df_val.drop(exclude+train_exclude, axis=1).values
 
 print('df_train.shape', X_train.shape)
 print('df_val.shape', X_val.shape)
@@ -64,7 +64,17 @@ print('df_test.shape', X_test.shape)
 print(set(X_train.columns) - set(X_test.columns))
 print(set(X_val.columns) - set(X_test.columns))
 print(set(X_train.columns) - set(X_val.columns))
-#%%
+#%% GBM imports
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error
+
+#%% GBM 
+# Position model
+GBR = GradientBoostingRegressor()
+GBR.fit(X_train_np, y_train_np)
+
+MSE = mean_squared_error(y[-100:], GBR.predict(X[-100:]))
+print("MSE: %.4f" % MSE)
 
 #%% STEP 2: QUALITY / GAIN MODEL
 df_train = pd.read_csv('prepped_df_train.csv')
@@ -80,5 +90,3 @@ X_train_gain = df_train.drop(exclude+train_exclude, axis=1).values
 X_val_gain = df_val.drop(exclude+train_exclude, axis=1).values
 
 print(target_train_gain.shape, X_train_gain.shape)
-
-#%%
