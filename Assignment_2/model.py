@@ -36,8 +36,8 @@ index_val = df_val[['srch_id', 'prop_id']]
 index_test = df_test[['srch_id', 'prop_id']]
 
 #%% Target = position (position based model)
-target_train = df_train[['position']]
-target_valid = df_val[['position']]
+target_train = df_train[['corrected_position']]
+target_valid = df_val[['corrected_position']]
 
 #%%
 exclude = ['srch_id', 
@@ -64,4 +64,17 @@ print('df_test.shape', X_test.shape)
 print(set(X_train.columns) - set(X_test.columns))
 print(set(X_val.columns) - set(X_test.columns))
 print(set(X_train.columns) - set(X_val.columns))
-#%%
+#%% GBM imports
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error
+
+#%% GBM 
+
+# Position model
+X_train_np = X_test.values()
+y_train_np = target_train.values()
+GBR = GradientBoostingRegressor()
+GBR.fit(X_train_np, y_train_np)
+
+MSE = mean_squared_error(y[-100:], GBR.predict(X[-100:]))
+print("MSE: %.4f" % MSE)
