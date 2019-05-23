@@ -1,1 +1,5 @@
 Assignment_2/data/
+Assignment_2/old
+*.csv
+*.png
+*.pdf

@@ -40,28 +40,28 @@ def make_submision(df, ranking_col, ascending=False):
     sorted_df.to_csv('Assignment_2/data/submision.csv', index=False)
 
 
-#%%
-df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
-# df = pd.read_csv('Assignment_2/toy_example_ndcg.csv', sep=';')
+# #%%
+# df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
+# # df = pd.read_csv('Assignment_2/toy_example_ndcg.csv', sep=';')
 
-# perform_ndcg(df, 'predicted', 'gain', False)
+# # perform_ndcg(df, 'predicted', 'gain', False)
 
-#%%
-df['gain'] = df['click_bool'] + (5 * df['booking_bool'])
+# #%%
+# df['gain'] = df['click_bool'] + (5 * df['booking_bool'])
 
-#%%
-selected_df = df[['gain', 'prop_id', 'srch_id', 'position', 'random_bool']]
+# #%%
+# selected_df = df[['gain', 'prop_id', 'srch_id', 'position', 'random_bool']]
 
-#%%
-rundf = selected_df[selected_df.random_bool == 1]
-print('NDCG of random set:', perform_new_ndcg(rundf, 'position', 'gain', True))
-#%%
-rundf = selected_df[selected_df.random_bool == 0]
-print('NDCG of non-random set:', perform_new_ndcg(rundf, 'position', 'gain', True))
-#%%
-rundf = selected_df
-print('NDCG of whole set:', perform_new_ndcg(rundf, 'position', 'gain', True))
+# #%%
+# rundf = selected_df[selected_df.random_bool == 1]
+# print('NDCG of random set:', perform_new_ndcg(rundf, 'position', 'gain', True))
+# #%%
+# rundf = selected_df[selected_df.random_bool == 0]
+# print('NDCG of non-random set:', perform_new_ndcg(rundf, 'position', 'gain', True))
+# #%%
+# rundf = selected_df
+# print('NDCG of whole set:', perform_new_ndcg(rundf, 'position', 'gain', True))
 
-#%%
-selection_df = df.head(1200)
-make_submision(selection_df, 'position', True)
+# #%%
+# selection_df = df.head(1200)
+# make_submision(selection_df, 'position', True)
