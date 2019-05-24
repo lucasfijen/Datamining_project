@@ -17,11 +17,12 @@ def create_prop_dest_mean_performance(df, col_names, gb=None):
     '''
     if gb is None:
         gb = df.groupby(['prop_id', 'srch_destination_id']).mean()
+        gb.columns = [str(col) + '_mean' for col in gb.columns if str(col) in col_names else str(col)]
 
     newdf = df.merge(gb[col_names], 
                      how='left', 
                      on=['prop_id', 'srch_destination_id'],
-                     suffixes=(None,'_mean'))
+                     suffixes=('','_fail'))
     
     # print(newdf.isna().sum())
     newdf = newdf.fillna(0)
