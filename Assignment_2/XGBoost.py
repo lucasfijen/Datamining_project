@@ -81,6 +81,10 @@ X_train = X_train.drop(model_specific+exclude+train_exclude, axis=1)
 X_val = X_val.drop(model_specific+exclude+train_exclude, axis=1)
 X_test = X_test.drop(model_specific+exclude, axis=1)
 
+#%%
+
+
+
 #%% FINAL CHECK
 print('X_train.shape', X_train.shape)
 print('X_val.shape', X_val.shape)
