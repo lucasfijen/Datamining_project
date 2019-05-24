@@ -39,7 +39,7 @@ def get_corrected_gain(df, correction_df):
     
     # MAKE NEW DATAFRAME TO STORE CORRECTED GAIN
     corrected_gain = pd.DataFrame(df[['position']].copy())
-    corrected_gain['total_non_corrected_gain'] = df['click_bool'] + df['booking_bool']
+    corrected_gain['total_non_corrected_gain'] = df['click_bool'] + (df['booking_bool'] * 5)
     corrected_gain['corrected_click_gain'] = df['click_bool'].copy()
     corrected_gain['corrected_book_gain'] = df['booking_bool'].copy() * 5
 
