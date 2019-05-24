@@ -27,8 +27,8 @@ def add_descriptors(train_data, test_data, variable):
                     on=[variable])
                     
     del all_groupby_reset_index
-    newdf_train.drop([variable], axis=1, inplace=True)
-    newdf_test.drop([variable], axis=1, inplace=True)
+    # newdf_train.drop([variable], axis=1, inplace=True)
+    # newdf_test.drop([variable], axis=1, inplace=True)
 
     dont_delete = []
     for i in [2,3,5,8]:
