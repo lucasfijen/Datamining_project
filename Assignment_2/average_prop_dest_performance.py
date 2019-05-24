@@ -22,9 +22,14 @@ def create_prop_dest_mean_performance(df, col_names, gb=None):
                      how='left', 
                      on=['prop_id', 'srch_destination_id'],
                      suffixes=(None,'_mean'))
+    
+    # print(newdf.isna().sum())
+    newdf = newdf.fillna(0)
+    # print(newdf.isna().sum())
+    
     return newdf, gb
 
-
+#
 #EXAMPLE:
 # df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 # df2, gb = create_prop_dest_mean_performance(df, col_names=['position'])

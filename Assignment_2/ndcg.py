@@ -44,7 +44,7 @@ def make_submision(df, ranking_col, ascending=False, filename='Assignment_2/data
 # df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv')
 # df = pd.read_csv('Assignment_2/toy_example_ndcg.csv', sep=';')
 
-# perform_ndcg(df, 'predicted', 'gain', False)
+# # perform_ndcg(df, 'predicted', 'gain', False)
 
 #%%
 # df['gain'] = df['click_bool'] + (5 * df['booking_bool'])
