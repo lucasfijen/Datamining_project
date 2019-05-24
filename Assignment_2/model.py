@@ -46,7 +46,6 @@ index_test = df_test[['srch_id', 'prop_id']]
 target_train = df_train[['corrected_position']]
 target_val = df_val[['corrected_position']]
 
-
 #%%
 exclude = ['srch_id', 
             'prop_id'
