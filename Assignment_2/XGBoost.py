@@ -55,11 +55,11 @@ test_group_sizes = X_test.groupby(['srch_id']).size().values
 #%% Target = position (position based model)
 if model_type == 'pos':
     y_train = X_train[['corrected_position']].values
-    y_val = X_val[['corrected_position']].values
+    # y_val = X_val[['corrected_position']].values
 else:
     y_train = X_train[['total_corrected_gain']].values
     # y_val = X_val[['total_corrected_gain']].values
-    y_val = X_val[['total_non_corrected_gain']].values
+y_val = X_val[['total_non_corrected_gain']].values
 #%% DELETE, most importantly: 'total_corrected_gain_mean' & 'total_corrected_gain_std'
 exclude = ['srch_id', 
             'prop_id',

@@ -17,8 +17,8 @@ from average_prop_dest_performance import *
 
 #%% Reading in db
 
-df = pd.read_csv('data/training_set_VU_DM.csv') #, nrows=20000
-df_test = pd.read_csv('data/test_set_VU_DM.csv')
+df = pd.read_csv('data/training_set_VU_DM.csv', nrows=20000) #, nrows=20000
+df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=20000)
 
 print('df.shape', df.shape)
 print('df_test.shape', df_test.shape)
@@ -161,8 +161,17 @@ print(set(df_val.columns) - set(df_test.columns))
 print(set(df_train.columns) - set(df_val.columns))
 
 #%%
+correlation = df_train.apply(lambda s: df_train.corrwith(s))
+
+#%%
 print('writing to file')
-df_train.to_csv('prepped_df_train.csv.gz', compression='gzip')
-df_test.to_csv('prepped_df_test.csv.gz', compression='gzip')
-df_val.to_csv('prepped_df_val.csv.gz', compression='gzip')
+# df_train.to_csv('prepped_df_train.csv.gz', compression='gzip')
+# df_test.to_csv('prepped_df_test.csv.gz', compression='gzip')
+# df_val.to_csv('prepped_df_val.csv.gz', compression='gzip')
+df_train.to_pickle('prepped_df_train.pickle')
+df_test.to_pickle('prepped_df_test.pickle')
+df_val.to_pickle('prepped_df_val.pickle')
+
+
+
 #%%

@@ -10,7 +10,7 @@ def add_descriptors(train_data, test_data, variable):
     del df_train_copy
     # print(all_numeric.columns)
     print('Doing groupby')
-    all_groupby = all_numeric.groupby(variable, sort=True).agg(['median', 'mean', 'std'])
+    all_groupby = all_numeric.groupby(variable, sort=True).agg(['mean', 'std']) #'median', 
     all_groupby_reset_index = all_groupby
     del all_numeric
     # print(all_groupby_reset_index.head())
