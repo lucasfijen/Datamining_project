@@ -131,7 +131,7 @@ params = {
 
 # TRAIN
 xgb_model = xgb.train(params, train_dmatrix, evals=[(valid_dmatrix, 'validation')])
-
+pickle.dump(xgb_model, "xgb_model.pickle")
 # VALIDATE
 predicted_val = xgb_model.predict(valid_dmatrix)
 
@@ -148,6 +148,7 @@ if model_type == 'pos':
 else:
     asc = False
 
+total_df.to_pickle('val_prediction' + model_type + '.pickle')
 print("Validation NDCG:", perform_new_ndcg(total_df, 'prediction', 'gain', ascending=asc))
 #%% TEST
 predicted_test = xgb_model.predict(test_dmatrix)
