@@ -7,30 +7,38 @@ def add_descriptors(train_data, test_data, variable):
     df_train_copy = train_data.copy()
     prep_categorical_numerical_descriptors(df_train_copy)
     prep_categorical_numerical_descriptors(df_test_copy, 0)
-    all_numeric = pd.concat([df_train_copy,df_test_copy],axis=0)
-
-    all_groupby = all_numeric.groupby(variable,sort=True).agg([np.median, np.mean, np.std])
-    all_groupby_reset_index = all_groupby.reset_index()
+    all_numeric = pd.concat([df_train_copy, df_test_copy],axis=0)
+    # print(all_numeric.columns)
+    all_groupby = all_numeric.groupby(variable, sort=True).agg([np.median, np.mean, np.std])
+    all_groupby_reset_index = all_groupby
+    # print(all_groupby_reset_index.head())
     all_groupby_reset_index.columns = ['_'.join(col).strip() for col in all_groupby_reset_index.columns.values]
-    all_groupby_reset_index.fillna(-10,inplace=True)
+    all_groupby_reset_index.fillna(-10, inplace=True)
+    # print(all_groupby_reset_index.head())
+    
 
     newdf_train = train_data.merge(all_groupby_reset_index, 
                     how='left', 
-                    left_on=[variable],
-                    right_on=[variable+'_']) #,suffixes=(None, '_'+variable)
+                    on=[variable])
     newdf_test = test_data.merge(all_groupby_reset_index, 
                     how='left', 
-                    left_on=[variable],
-                    right_on=[variable+'_']
-                    )#,suffixes=[None, '_'+variable]
+                    on=[variable])
 
-    newdf_train.drop([variable],axis=1)
+    newdf_train.drop([variable], axis=1)
     newdf_test.drop([variable], axis=1)
+
+    dont_delete = []
+    for i in [2,3,5,8]:
+        rate = 'comp' + str(i) + '_rate'
+        inv = 'comp' + str(i) + '_inv'
+        diff = 'comp' + str(i) + '_rate_percent_diff'
+        dont_delete.extend([rate,inv, diff])
 
     to_delete = []
     for c in newdf_train:
         if ('prop_id_' in c)  or ('comp' in c):
-            to_delete.append(c)
+            if not c in dont_delete:
+                to_delete.append(c)
 
     newdf_test.drop(to_delete, axis=1, inplace=True)
     newdf_train.drop(to_delete, axis=1, inplace=True)
@@ -90,8 +98,8 @@ def prep_categorical_numerical_descriptors(data, train = 1):
 
 
 #%%
-# df = pd.read_csv('data/training_set_VU_DM.csv',nrows=1000)
-# df_test = pd.read_csv('data/test_set_VU_DM.csv', nrows=1000)
+# df = pd.read_csv('Assignment_2/data/training_set_VU_DM.csv',nrows=1000)
+# df_test = pd.read_csv('Assignment_2/data/test_set_VU_DM.csv', nrows=1000)
 
 # a, b = add_descriptors(df, df_test, 'prop_id')
 # print(a.columns)
@@ -101,5 +109,8 @@ def prep_categorical_numerical_descriptors(data, train = 1):
 
 # #%%
 
+
+#%%
+# print(a)
 
 #%%
