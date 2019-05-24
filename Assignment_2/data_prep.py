@@ -134,10 +134,10 @@ df_train[df_train['srch_id']==4][['position', 'corrected_position']]
 # print(df_val.columns)
 # print(df_test.columns)
 # exit()
-df_train, gb_train = create_prop_dest_mean_performance(df_train, ['total_corrected_gain'], None)
-df_val, _ = create_prop_dest_mean_performance(df_val, ['total_corrected_gain'], gb_train)
+df_train, gb_train = create_prop_dest_mean_performance(df_train, ['total_corrected_gain', 'corrected_position'], None)
+df_val, _ = create_prop_dest_mean_performance(df_val, ['total_corrected_gain', 'corrected_position'], gb_train)
 # DOES NOT WORK FOR TEST
-df_test, _ = create_prop_dest_mean_performance(df_test, ['total_corrected_gain'], gb_train)
+df_test, _ = create_prop_dest_mean_performance(df_test, ['total_corrected_gain', 'corrected_position'], gb_train)
 
 # df_train.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
 # df_val.rename(columns={'total_corrected_gain_mean':'XXX_GAIN_MEAN_XXX'}, inplace=True)
