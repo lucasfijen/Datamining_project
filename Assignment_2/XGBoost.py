@@ -21,9 +21,9 @@ from itertools import groupby
 model_type = 'gain'
 
 #%% LOAD
-df_train = pd.read_csv('prepped_df_train-1.csv', nrows=100)
-df_test = pd.read_csv('prepped_df_test-1.csv', nrows=100)
-df_val = pd.read_csv('prepped_df_val-1.csv', nrows=100)
+df_train = pd.read_csv('data/prepped_df_train.csv')
+df_test = pd.read_csv('data/prepped_df_test.csv')
+df_val = pd.read_csv('data/prepped_df_val.csv')
 
 
 #%% SHAPE & DIFFERENCES
@@ -111,7 +111,8 @@ params = {
     'objective':'rank:ndcg',
     'eval_metric':'ndcg@5',
     'n_estimators':10000,
-    'verbose':'True'
+    'verbose':'True',
+    'nthread': 5,
 }
 
 # TRAIN
