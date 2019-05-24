@@ -22,9 +22,9 @@ model_type = 'gain'
 
 #%% LOAD
 print('loading')
-df_train = pd.read_csv('data/prepped_df_train.csv')
-df_test = pd.read_csv('data/prepped_df_test.csv')
-df_val = pd.read_csv('data/prepped_df_val.csv')
+df_train = pd.read_pickle('data/prepped_df_train.pkl')
+df_test = pd.read_pickle('data/prepped_df_test.pkl')
+df_val = pd.read_pickle('data/prepped_df_val.pkl')
 print('finished loading')
 
 #%% SHAPE & DIFFERENCES
