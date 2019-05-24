@@ -145,7 +145,7 @@ df_test, _ = create_prop_dest_mean_performance(df_test, ['total_corrected_gain']
 
 #%% ALSO DROP some stuff: 
 def drop(df):
-    df = df.drop(['site_id', 'visitor_location_country_id', 'prop_country_id'], axis=1)
+    df = df.drop(['site_id', 'visitor_location_country_id'], axis=1)
     return df
 
 df_test = drop(df_test)
