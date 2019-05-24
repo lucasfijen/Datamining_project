@@ -44,9 +44,9 @@ X_val = df_val #[df_val['random_bool'] == 0]
 X_test = df_test #[df_test['random_bool'] == 0]
 
 #%% Index = srch_id, prop_id
-index_train = X_train[['srch_id', 'prop_id']].copy().values
-index_val = X_val[['srch_id', 'prop_id']].copy().values
-index_test = X_test[['srch_id', 'prop_id']].copy().values
+index_train = X_train[['srch_id', 'prop_id']].values
+index_val = X_val[['srch_id', 'prop_id']].values
+index_test = X_test[['srch_id', 'prop_id']].values
 
 # Group sizes
 train_group_sizes = X_train.groupby(['srch_id']).size().values
