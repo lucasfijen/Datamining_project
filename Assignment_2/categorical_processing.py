@@ -9,7 +9,7 @@ def add_descriptors(train_data, test_data, variable):
     prep_categorical_numerical_descriptors(df_test_copy, 0)
     all_numeric = pd.concat([df_train_copy, df_test_copy],axis=0)
     # print(all_numeric.columns)
-    all_groupby = all_numeric.groupby(variable, sort=True).agg([np.median, np.mean, np.std])
+    all_groupby = all_numeric.groupby(variable, sort=True).agg([np.nanmedian, np.nanmean, np.nanstd])
     all_groupby_reset_index = all_groupby
     # print(all_groupby_reset_index.head())
     all_groupby_reset_index.columns = ['_'.join(col).strip() for col in all_groupby_reset_index.columns.values]
