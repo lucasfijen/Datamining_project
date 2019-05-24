@@ -21,10 +21,11 @@ from itertools import groupby
 model_type = 'gain'
 
 #%% LOAD
+print('loading')
 df_train = pd.read_csv('data/prepped_df_train.csv')
 df_test = pd.read_csv('data/prepped_df_test.csv')
 df_val = pd.read_csv('data/prepped_df_val.csv')
-
+print('finished loading')
 
 #%% SHAPE & DIFFERENCES
 print('df_train.shape', df_train.shape)
@@ -76,14 +77,18 @@ train_exclude = ['total_corrected_gain', 'corrected_click_gain',
                  'booking_bool', 'click_bool', 'position', 
                  'gross_bookings_usd', 'corrected_book_gain'
                  ]
-
-X_train = X_train.drop(model_specific+exclude+train_exclude, axis=1)
-X_val = X_val.drop(model_specific+exclude+train_exclude, axis=1)
-X_test = X_test.drop(model_specific+exclude, axis=1)
+print('dropping')
+X_new_train = X_train.drop(model_specific+exclude+train_exclude, axis=1)
+X_new_val = X_val.drop(model_specific+exclude+train_exclude, axis=1)
+X_new_test = X_test.drop(model_specific+exclude, axis=1)
 
 #%%
-
-
+del X_train
+del X_val
+del X_test
+X_new = X_new_train
+X_val = X_new_val
+X_test = X_new_test
 
 #%% FINAL CHECK
 print('X_train.shape', X_train.shape)
@@ -96,6 +101,7 @@ print(set(X_val.columns) - set(X_test.columns))
 print(set(X_train.columns) - set(X_val.columns))
 
 #%% Prepare matrices
+print('Creating Dmatrices')
 train_dmatrix = DMatrix(X_train.values, y_train)
 valid_dmatrix = DMatrix(X_val.values, y_val)
 test_dmatrix = DMatrix(X_test.values)
@@ -103,6 +109,10 @@ test_dmatrix = DMatrix(X_test.values)
 train_dmatrix.set_group(train_group_sizes)
 valid_dmatrix.set_group(val_group_sizes)
 test_dmatrix.set_group(test_group_sizes)
+
+del X_train
+del X_val
+del X_test
 
 #%% XGBOOST MODEL: POSITION-BASED
 #XGB model using efficient data structure Dmatrix
